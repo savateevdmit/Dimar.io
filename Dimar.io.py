@@ -3,7 +3,6 @@ import sys
 import pygame
 from math import *
 from random import *
-
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QPixmap, QIcon, QCursor
