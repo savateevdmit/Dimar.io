@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QLabel, QFileD
 class Start_window(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('start.ui', self)  # Загружаем дизайн
+        uic.loadUi('Ui files/start.ui', self)  # Загружаем дизайн
         self.showFullScreen()
         self.toolButton.clicked.connect(self.click)
         self.toolButton_2.clicked.connect(self.settings)
@@ -118,13 +118,13 @@ class Start_window(QMainWindow):
 class Info(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi('info.ui', self)
+        uic.loadUi('Ui files/info.ui', self)
 
 
 class Settings(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi('settings.ui', self)
+        uic.loadUi('Ui files/settings.ui', self)
 
 
 if __name__ == '__main__':
