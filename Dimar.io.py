@@ -41,8 +41,8 @@ class Start_window(QMainWindow):
                 self.width = 100
                 self.height = 100
                 self.board = [[0] * width for _ in range(height)]
-                self.left = randrange(-4250, 750)
-                self.top = randrange(-4300, 405)
+                self.left = randrange(-4250, width)
+                self.top = randrange(-4300, high)
                 self.cell_size = 75
 
             def set_view(self, left, top, cell_size, a):
@@ -52,11 +52,11 @@ class Start_window(QMainWindow):
                     a[i][1] += top
                 self.left += left
                 self.top += top
-                if self.left < -1 * self.cell_size * self.width + 750 or self.left > 750:
+                if self.left < -1 * self.cell_size * self.width + width or self.left > width:
                     self.left -= left
                     for i in range(len(a)):
                         a[i][0] -= left
-                if self.top < -1 * self.cell_size * self.width + 405 or self.top > 405:
+                if self.top < -1 * self.cell_size * self.width + high or self.top > high:
                     self.top -= top
                     for i in range(len(a)):
                         a[i][1] -= top
@@ -65,14 +65,14 @@ class Start_window(QMainWindow):
 
             def set_view_2(self, k, s, a):
                 f = []
-                print(k * (self.left - 750) + 750, k * (self.top - 405) + 405)
-                self.left = k * (self.left - 750) + 750
-                self.top = k * (self.top - 405) + 405
+                print(k * (self.left - width) + width, k * (self.top - high) + high)
+                self.left = k * (self.left - width) + width
+                self.top = k * (self.top - high) + high
                 print(self.left, self.top)
                 print('--------------------------')
                 for i in range(len(a)):
-                    a[i][0] = k * (a[i][0] - 750) + 750
-                    a[i][1] = k * (a[i][1] - 405) + 405
+                    a[i][0] = k * (a[i][0] - width) + width
+                    a[i][1] = k * (a[i][1] - high) + high
                 return a
 
             def render(self, screen):
@@ -93,8 +93,9 @@ class Start_window(QMainWindow):
 
         if __name__ == '__main__':
             pygame.init()
-            size = width, height = 1550, 810
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            width, high = pygame.display.get_surface().get_size()
+            width, high = width // 2, high // 2
 
             running = True
             board = Board(130, 130)
@@ -117,8 +118,8 @@ class Start_window(QMainWindow):
                             running = False
                     if event.type == pygame.MOUSEMOTION:
                         x, y = event.pos
-                        x -= 755
-                        y -= 405
+                        x -= width
+                        y -= high
                         z = sqrt(x ** 2 + y ** 2)
 
                     del_points = []
@@ -130,7 +131,7 @@ class Start_window(QMainWindow):
                     points = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points)
 
                 for i in range(len(points)):
-                    if 750 - r < points[i][0] < 750 + r and 405 - r < points[i][1] < 405 + r:
+                    if 750 - r < points[i][0] < 750 + r and high - r < points[i][1] < high + r:
                         del_points.append(points[i])
                 for i in del_points:
                     del points[points.index(i)]
@@ -151,8 +152,8 @@ class Start_window(QMainWindow):
                 for i in range(len(points)):
                     pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
 
-                pygame.draw.circle(screen, (200, 0, 0), (755, 405), r + 5)
-                pygame.draw.circle(screen, (255, 0, 0), (755, 405), r)
+                pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
+                pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
 
                 pygame.display.flip()
 
