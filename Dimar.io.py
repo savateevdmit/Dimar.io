@@ -38,8 +38,8 @@ class Start_window(QMainWindow):
     def click(self):
         class Board:
             def __init__(self, width, height):
-                self.width = width
-                self.height = height
+                self.width = 100
+                self.height = 100
                 self.board = [[0] * width for _ in range(height)]
                 self.left = randrange(-4250, 750)
                 self.top = randrange(-4300, 405)
@@ -63,11 +63,17 @@ class Start_window(QMainWindow):
 
                 return a
 
-            def set_view_2(self, a, b, s):
+            def set_view_2(self, k, s, a):
+                f = []
+                print(k * (self.left - 750) + 750, k * (self.top - 405) + 405)
+                self.left = k * (self.left - 750) + 750
+                self.top = k * (self.top - 405) + 405
                 print(self.left, self.top)
-                self.left += s * 2 - a
-                self.top += s * 2 - b
-                print(self.left, self.top)
+                print('--------------------------')
+                for i in range(len(a)):
+                    a[i][0] = k * (a[i][0] - 750) + 750
+                    a[i][1] = k * (a[i][1] - 405) + 405
+                return a
 
             def render(self, screen):
                 for y in range(self.height):
@@ -83,14 +89,15 @@ class Start_window(QMainWindow):
 
             return [[randrange(board.move()[0], s * 100 + board.move()[0]),
                      randrange(board.move()[1], s * 100 + board.move()[1]),
-                     (randrange(0, 255), randrange(0, 255), randrange(0, 255))] for _ in range(1000)]
+                     (randrange(0, 255), randrange(0, 255), randrange(0, 255))] for _ in range(5000)]
 
         if __name__ == '__main__':
             pygame.init()
+            size = width, height = 1550, 810
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
             running = True
-            board = Board(100, 100)
+            board = Board(130, 130)
             v = 8
             r = 50
             r_points = 10
@@ -113,20 +120,6 @@ class Start_window(QMainWindow):
                         x -= 755
                         y -= 405
                         z = sqrt(x ** 2 + y ** 2)
-                    for i in range(len(points)):
-                        if 750 - r < points[i][0] < 750 + r and 405 - r < points[i][1] < 405 + r:
-                            del_points.append(points[i])
-                    for i in del_points:
-                        del points[points.index(i)]
-                        if r >= 150:
-                            size -= 0.3
-                            r_points *= 0.98
-                            board.set_view_2(-2, -2, size)
-                            for i in range(len(points)):
-                                pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
-                        elif r < 150:
-                            r += 0.5
-                        print(r, size)
 
                     del_points = []
                 if len(points) < 1000:
@@ -136,6 +129,23 @@ class Start_window(QMainWindow):
                 if (x > 50 or x < -50) or (y > 50 or y < -50):
                     points = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points)
 
+                for i in range(len(points)):
+                    if 750 - r < points[i][0] < 750 + r and 405 - r < points[i][1] < 405 + r:
+                        del_points.append(points[i])
+                for i in del_points:
+                    del points[points.index(i)]
+
+                    if r >= 150:
+                        size -= 0.25
+                        r_points *= size / (size + 0.02) - 0.005
+                        k = size / (size + 0.02)
+                        points = board.set_view_2(k, size, points)
+                        for i in range(len(points)):
+                            pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
+                    elif r < 150:
+                        r += 3
+                        v *= 0.999
+                del_points = []
                 screen.fill((235, 235, 235))
                 board.render(screen)
                 for i in range(len(points)):
@@ -148,6 +158,7 @@ class Start_window(QMainWindow):
 
                 pygame.display.flip()
             pygame.quit()
+
 
 class Info(QDialog):
     def __init__(self):
