@@ -87,12 +87,13 @@ class Start_window(QMainWindow):
 
         def pointss(s):
 
-            return [[randrange(board.move()[0], s * 100 + board.move()[0]),
+            return [[randrange(board.move()[0], s * 100 + board.move()[0]),  # создание еды
                      randrange(board.move()[1], s * 100 + board.move()[1]),
                      (randrange(0, 255), randrange(0, 255), randrange(0, 255))] for _ in range(5000)]
 
         if __name__ == '__main__':
             pygame.init()
+            size = width, height = 1550, 810
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
             width, high = pygame.display.get_surface().get_size()
             width, high = width // 2, high // 2
@@ -131,7 +132,7 @@ class Start_window(QMainWindow):
                     points = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points)
 
                 for i in range(len(points)):
-                    if 750 - r < points[i][0] < 750 + r and high - r < points[i][1] < high + r:
+                    if width - r < points[i][0] < width + r and high - r < points[i][1] < high + r:
                         del_points.append(points[i])
                 for i in del_points:
                     del points[points.index(i)]
