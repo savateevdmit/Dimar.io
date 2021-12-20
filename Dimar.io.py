@@ -12,6 +12,7 @@ from PyQt5.QtGui import QPixmap, QIcon, QCursor
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QLabel, QFileDialog, QToolButton, QDialog, QScrollBar, \
     QSpinBox, QMessageBox
 
+FPS = 260
 
 class Start_window(QMainWindow):
     def __init__(self):
@@ -92,6 +93,7 @@ class Start_window(QMainWindow):
                      (randrange(0, 255), randrange(0, 255), randrange(0, 255))] for _ in range(5000)]
 
         if __name__ == '__main__':
+            clock = pygame.time.Clock()
             pygame.init()
             size = width, height = 1550, 810
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -158,7 +160,7 @@ class Start_window(QMainWindow):
 
                 pygame.display.flip()
 
-                pygame.display.flip()
+                clock.tick(FPS)
             pygame.quit()
 
 
