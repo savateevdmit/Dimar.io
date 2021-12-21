@@ -12,7 +12,7 @@ from PyQt5.QtGui import QPixmap, QIcon, QCursor
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QLabel, QFileDialog, QToolButton, QDialog, QScrollBar, \
     QSpinBox, QMessageBox
 
-FPS = 260
+FPS = 30
 
 class Start_window(QMainWindow):
     def __init__(self):
