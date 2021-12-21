@@ -13,8 +13,6 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QLabel, QFileD
     QSpinBox, QMessageBox
 
 FPS = 30
-print(FPS)
-print(FPS)
 
 class Start_window(QMainWindow):
     def __init__(self):
