@@ -1,1 +1,1 @@
-print('hello')
+print('тест'*150)
