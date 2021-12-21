@@ -39,8 +39,8 @@ class Start_window(QMainWindow):
     def click(self):
         class Board:
             def __init__(self, width, height):
-                self.width = 100
-                self.height = 100
+                self.width = width
+                self.height = height
                 self.board = [[0] * width for _ in range(height)]
                 self.left = randrange(-4250, width)
                 self.top = randrange(-4300, high)
@@ -66,14 +66,25 @@ class Start_window(QMainWindow):
 
             def set_view_2(self, k, s, a):
                 f = []
-                print(k * (self.left - width) + width, k * (self.top - high) + high)
-                self.left = k * (self.left - width) + width
-                self.top = k * (self.top - high) + high
-                print(self.left, self.top)
-                print('--------------------------')
+                left = self.left - width
+                top = self.top - high
+                left *= k
+                top *= k
+                left += width
+                top += high
+                while self.left < left or self.top < top:
+                    if self.left < left:
+                        self.left += 0.04
+                    if self.top < top:
+                        self.top += 0.04
                 for i in range(len(a)):
-                    a[i][0] = k * (a[i][0] - width) + width
-                    a[i][1] = k * (a[i][1] - high) + high
+                    if self.left < a[i][0] < self.left + 100 * size and self.top < a[i][1] < self.top + 100 * size:
+                        a[i][0] = (k * (a[i][0] - width)) + width
+                        a[i][1] = (k * (a[i][1] - high)) + high
+                    else:
+                        f.append(i)
+                for g in f:
+                    del a[g]
                 return a
 
             def render(self, screen):
@@ -101,9 +112,9 @@ class Start_window(QMainWindow):
             width, high = width // 2, high // 2
 
             running = True
-            board = Board(130, 130)
-            v = 8
-            r = 50
+            board = Board(100, 100)
+            v = 12
+            r = 20
             r_points = 10
             i = 0
             m = 1
@@ -140,15 +151,15 @@ class Start_window(QMainWindow):
                     del points[points.index(i)]
 
                     if r >= 150:
-                        size -= 0.25
-                        r_points *= size / (size + 0.02) - 0.005
-                        k = size / (size + 0.02)
+                        size -= 0.1
+                        r_points *= size / (size + 0.1) - 0.005
+                        k = size / (size + 0.1)
                         points = board.set_view_2(k, size, points)
                         for i in range(len(points)):
                             pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
                     elif r < 150:
-                        r += 3
-                        v *= 0.999
+                        r += 0.8
+                        v *= 0.995
                 del_points = []
                 screen.fill((235, 235, 235))
                 board.render(screen)
@@ -181,5 +192,3 @@ if __name__ == '__main__':
     ex = Start_window()
     ex.show()
     sys.exit(app.exec_())
-
-print('jhg')
