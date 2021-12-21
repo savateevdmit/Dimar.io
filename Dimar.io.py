@@ -13,10 +13,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QLabel, QFileD
     QSpinBox, QMessageBox
 
 FPS = 30
-<<<<<<< HEAD
 print(FPS)
-=======
->>>>>>> origin/main
+print(FPS)
 
 class Start_window(QMainWindow):
     def __init__(self):
@@ -185,8 +183,5 @@ if __name__ == '__main__':
     ex = Start_window()
     ex.show()
     sys.exit(app.exec_())
-<<<<<<< HEAD
-=======
 
 print('jhg')
->>>>>>> origin/main
