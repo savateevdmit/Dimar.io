@@ -47,6 +47,9 @@ class Start_window(QMainWindow):
                 self.cell_size = 75
 
             def set_view(self, left, top, cell_size, a):
+                # print((left, top, cell_size, a))
+                # print()
+                # print('----------------------------')
                 self.cell_size = cell_size
                 for i in range(len(a)):
                     a[i][0] += left
@@ -73,6 +76,7 @@ class Start_window(QMainWindow):
                 top += high
                 self.top = top
                 self.left = left
+                print((k, a))
                 for i in range(len(a)):
                     a[i][0] = (k * (a[i][0] - width)) + width
                     a[i][1] = (k * (a[i][1] - high)) + high
@@ -122,6 +126,8 @@ class Start_window(QMainWindow):
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             running = False
+                        if event.key == pygame.K_w and r >= 40:
+                            b = True
                     if event.type == pygame.MOUSEMOTION:
                         x, y = event.pos
                         x -= width
@@ -150,15 +156,26 @@ class Start_window(QMainWindow):
                         v *= (pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (r_points ** 2))) * 1.001
                         for i in range(len(points)):
                             if 0 < points[i][0] < width * 2 and 0 < points[i][1] < high * 2:
-                                pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][3])
+                                pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), 10)
                     elif r < 150:
                         r = sqrt(((pi * (r ** 2)) + (pi * (r_points ** 2))) / pi) * 1.001
                         v *= size / (size / ((pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (r_points ** 2)))))
                 del_points = []
                 screen.fill((235, 235, 235))
                 board.render(screen)
+                if b:
+                    pygame.draw.circle(screen, (200, 0, 0), (930, 750), 10 + 5)
+                    pygame.draw.circle(screen, (255, 0, 0), (930, 750), 10)
+                    points.append([930, 750, (255, 0, 0), 22])
+                    b = False
+                    r -= 22
+                    print(r_points)
                 for i in range(len(points)):
-                    pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
+                    if points[i][3] == 22:
+                        pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][3])
+                    else:
+                        pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
+                # points[i][3]
 
                 pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
                 pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
@@ -183,6 +200,7 @@ class Settings(QDialog):
 
 def except_hook(cls, exception, traceback):
     sys.__excepthook__(cls, exception, traceback)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
