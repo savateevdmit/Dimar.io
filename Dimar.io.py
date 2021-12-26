@@ -1,6 +1,8 @@
 import pygame
 from math import *
 from random import *
+from shapely.geometry import LineString
+from shapely.geometry import Point
 import os
 import sqlite3
 import sys
@@ -37,6 +39,8 @@ class Start_window(QMainWindow):
         self.set.show()
 
     def click(self):
+        global x, x1, y1
+
         class Board:
             def __init__(self, width, height):
                 self.width = width
@@ -76,7 +80,6 @@ class Start_window(QMainWindow):
                 top += high
                 self.top = top
                 self.left = left
-                print((k, a))
                 for i in range(len(a)):
                     a[i][0] = (k * (a[i][0] - width)) + width
                     a[i][1] = (k * (a[i][1] - high)) + high
@@ -117,6 +120,7 @@ class Start_window(QMainWindow):
             b = False
             plr = []
             size = 100
+            dropout_range = 150
             points = pointss(size, r)
             del_points = []
             while running:
@@ -130,6 +134,7 @@ class Start_window(QMainWindow):
                             b = True
                     if event.type == pygame.MOUSEMOTION:
                         x, y = event.pos
+                        x1, y1 = x, y
                         x -= width
                         y -= high
                         z = sqrt(x ** 2 + y ** 2)
@@ -158,24 +163,33 @@ class Start_window(QMainWindow):
                             if 0 < points[i][0] < width * 2 and 0 < points[i][1] < high * 2:
                                 pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), 10)
                     elif r < 150:
-                        r = sqrt(((pi * (r ** 2)) + (pi * (r_points ** 2))) / pi) * 1.001
+                        r = sqrt(((pi * (r ** 2)) + (pi * (r_points ** 2))) / pi) * 1.1
                         v *= size / (size / ((pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (r_points ** 2)))))
                 del_points = []
                 screen.fill((235, 235, 235))
                 board.render(screen)
                 if b:
-                    pygame.draw.circle(screen, (200, 0, 0), (930, 750), 10 + 5)
-                    pygame.draw.circle(screen, (255, 0, 0), (930, 750), 10)
-                    points.append([930, 750, (255, 0, 0), 22])
+                    # pygame.draw.line(screen, (0, 0, 0), (width, high), (x1, y1))
+                    circle = Point(width, high).buffer(dropout_range + (r * 1.8))
+                    hypotenuse = LineString([(x1, y1), (width, high)])
+                    intersection_coordinates = circle.intersection(hypotenuse).coords
+                    # print(intersection_coordinates[0])
+                    # k = 0
+                    #
+                    # while k != 150:
+                    #     pygame.draw.circle(screen, (200, 0, 0), (intersection_coordinates[0][0] + k, intersection_coordinates[0][1] + k), 27)
+                    #     pygame.draw.circle(screen, points[i][2], (intersection_coordinates[0][0] + k, intersection_coordinates[0][1] + k), points[i][3])
+                    #     k += 20
+
+                    points.append([intersection_coordinates[0][0], intersection_coordinates[0][1], (255, 0, 0), 22])
                     b = False
                     r -= 22
-                    print(r_points)
                 for i in range(len(points)):
                     if points[i][3] == 22:
+                        pygame.draw.circle(screen, (200, 0, 0), (points[i][0], points[i][1]), 27)  # TODO отнимать от points[i][2] 55
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][3])
                     else:
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
-                # points[i][3]
 
                 pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
                 pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
