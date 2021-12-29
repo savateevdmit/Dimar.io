@@ -1,20 +1,16 @@
-import pygame
+import sys
 from math import *
 from random import *
+
+import pygame
+from PyQt5 import uic  # Импортируем uic
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
 from shapely.geometry import LineString
 from shapely.geometry import Point
-import os
-import sqlite3
-import sys
-
-from PIL import Image
-from PyQt5 import uic  # Импортируем uic
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QPixmap, QIcon, QCursor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QLabel, QFileDialog, QToolButton, QDialog, QScrollBar, \
-    QSpinBox, QMessageBox
 
 FPS = 30
+
 
 class Start_window(QMainWindow):
     def __init__(self):
@@ -33,13 +29,12 @@ class Start_window(QMainWindow):
         self.inf = Info()
         self.inf.show()
 
-
     def settings(self):
         self.set = Settings()
         self.set.show()
 
     def click(self):
-        global x, x1, y1
+        global x, x1, y1, intersection_coordinates, list_of_coordinates
 
         class Board:
             def __init__(self, width, height):
@@ -68,10 +63,12 @@ class Start_window(QMainWindow):
                     self.top -= top
                     for i in range(len(a)):
                         a[i][1] -= top
+                topp = self.top
+                leftt = self.left
 
                 return a
 
-            def set_view_2(self, k, s, a):
+            def set_view_2(self, k, s, a):  # маштабирование
                 left = self.left - width
                 top = self.top - high
                 left *= k
@@ -104,9 +101,12 @@ class Start_window(QMainWindow):
 
         if __name__ == '__main__':
             clock = pygame.time.Clock()
+            clock1 = pygame.time.Clock()
             pygame.init()
             size = width, height = 1550, 810
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            # size = width, height = 800, 600
+            # screen = pygame.display.set_mode(size)
             width, high = pygame.display.get_surface().get_size()
             width, high = width // 2, high // 2
 
@@ -118,26 +118,38 @@ class Start_window(QMainWindow):
             i = 0
             m = 1
             b = False
+            bb = False
             plr = []
             size = 100
-            dropout_range = 150
+            width1, high1 = 0, 0
+
+            dropout_range = 250
             points = pointss(size, r)
             del_points = []
             while running:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
-                    elif event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            running = False
-                        if event.key == pygame.K_w and r >= 40:
-                            b = True
                     if event.type == pygame.MOUSEMOTION:
                         x, y = event.pos
                         x1, y1 = x, y
                         x -= width
                         y -= high
                         z = sqrt(x ** 2 + y ** 2)
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            running = False
+                        if event.key == pygame.K_w and r >= 50:
+                            b = True
+                            bb = True
+                            width1 = width
+                            high1 = high
+                            ww, hh = width, high
+                            v1 = 100
+                            boost = 0
+                            list_of_coordinates = []
+                            list_of_coordinates.append((x1, y1))
+                            # print((x1, list_of_coordinates[0][0]), (y1, list_of_coordinates[0][1]))
 
                     del_points = []
                 if len(points) < 2000:
@@ -146,6 +158,8 @@ class Start_window(QMainWindow):
                                    (randrange(0, 255), randrange(0, 255), randrange(0, 255)), r_points])
                 if (x > 50 or x < -50) or (y > 50 or y < -50):
                     points = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points)
+                    width1 -= (x / z) * v
+                    high1 -= (y / z) * v
 
                 for i in range(len(points)):
                     if width - r < points[i][0] < width + r and high - r < points[i][1] < high + r:
@@ -155,7 +169,8 @@ class Start_window(QMainWindow):
 
                     if r >= 150:
                         size *= (pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (r_points ** 2)))
-                        r_points *= size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (r_points ** 2)))))
+                        r_points *= size / (
+                                    size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (r_points ** 2)))))
                         k = size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (r_points ** 2)))))
                         points = board.set_view_2(k, size, points)
                         v *= (pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (r_points ** 2))) * 1.001
@@ -163,30 +178,107 @@ class Start_window(QMainWindow):
                             if 0 < points[i][0] < width * 2 and 0 < points[i][1] < high * 2:
                                 pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), 10)
                     elif r < 150:
-                        r = sqrt(((pi * (r ** 2)) + (pi * (r_points ** 2))) / pi) * 1.1
+                        r = sqrt(((pi * (r ** 2)) + (pi * (r_points ** 2))) / pi) * 1.001
                         v *= size / (size / ((pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (r_points ** 2)))))
                 del_points = []
                 screen.fill((235, 235, 235))
                 board.render(screen)
                 if b:
                     # pygame.draw.line(screen, (0, 0, 0), (width, high), (x1, y1))
-                    circle = Point(width, high).buffer(dropout_range + (r * 1.8))
+                    circle = Point(width, high).buffer(dropout_range + (r * 2.5))
                     hypotenuse = LineString([(x1, y1), (width, high)])
                     intersection_coordinates = circle.intersection(hypotenuse).coords
                     # print(intersection_coordinates[0])
-                    # k = 0
-                    #
-                    # while k != 150:
-                    #     pygame.draw.circle(screen, (200, 0, 0), (intersection_coordinates[0][0] + k, intersection_coordinates[0][1] + k), 27)
-                    #     pygame.draw.circle(screen, points[i][2], (intersection_coordinates[0][0] + k, intersection_coordinates[0][1] + k), points[i][3])
-                    #     k += 20
-
-                    points.append([intersection_coordinates[0][0], intersection_coordinates[0][1], (255, 0, 0), 22])
                     b = False
                     r -= 22
+                    v = 4
+
+                if bb:
+                    # print(list_of_coordinates[0][0])
+                    opposite_cathet = high - intersection_coordinates[0][1]  # противолежащий катет
+                    adjacent_cathet = width - intersection_coordinates[0][0]  # прилежащий катет
+
+                    try:
+                        ratio_cathets = opposite_cathet / adjacent_cathet  # отношение катетов
+                    except ZeroDivisionError:
+                        ratio_cathets = 0
+                    screen.fill((235, 235, 235))
+                    board.render(screen)
+                    pygame.draw.circle(screen, (200, 0, 0), (int(width1), int(high1)), 26)
+                    pygame.draw.circle(screen, (255, 0, 0), (int(width1), int(high1)), 21)
+                    print(ratio_cathets)
+
+                    if abs(ratio_cathets) < 10:
+                        if list_of_coordinates[0][0] > width and list_of_coordinates[0][1] > high:
+                            width1 += (1 * abs(100 - boost)) / 10
+                            ww += (1 * abs(100 - boost)) / 10
+                            high1 += (ratio_cathets * abs(100 - boost)) / 10
+                            hh += (ratio_cathets * abs(100 - boost)) / 10
+                            # print(width1, high1)
+                        elif list_of_coordinates[0][0] > width and list_of_coordinates[0][1] < high:
+                            width1 += (1 * abs(100 - boost)) / 10
+                            ww += (1 * abs(100 - boost)) / 10
+                            high1 += (ratio_cathets * abs(100 - boost)) / 10
+                            hh += (ratio_cathets * abs(100 - boost)) / 10
+                        elif list_of_coordinates[0][0] < width and list_of_coordinates[0][1] < high:
+                            width1 -= (1 * abs(100 - boost)) / 10
+                            ww -= (1 * abs(100 - boost)) / 10
+                            high1 -= (ratio_cathets * abs(100 - boost)) / 10
+                            hh -= (ratio_cathets * abs(100 - boost)) / 10
+                        elif list_of_coordinates[0][0] < width and list_of_coordinates[0][1] > high:
+                            width1 -= (1 * abs(100 - boost)) / 10
+                            ww -= (1 * abs(100 - boost)) / 10
+                            high1 -= (ratio_cathets * abs(100 - boost)) / 10
+                            hh -= (ratio_cathets * abs(100 - boost)) / 10
+                    # sleep(0.5)
+                        boost += 1
+                        # print((round(width1), round(high1)), (round(ww), round(hh)), (round(intersection_coordinates[0][0]), round(intersection_coordinates[0][1])))
+                        if round(intersection_coordinates[0][0]) - 10 < round(ww) < round(
+                                intersection_coordinates[0][0]) + 10 \
+                                and round(intersection_coordinates[0][1]) - 10 < round(hh) < round(
+                            intersection_coordinates[0][1]) + 10:
+                            bb = False
+                            list_of_coordinates.clear()
+                            points.append([width1, high1, (255, 0, 0), 22])
+
+                    else:
+                        print('kjg')
+                        if list_of_coordinates[0][0] > width and list_of_coordinates[0][1] > high:
+                            width1 += (1 * abs(100 - boost)) / 100
+                            ww += (1 * abs(100 - boost)) / 100
+                            high1 += (ratio_cathets * abs(100 - boost)) / 100
+                            hh += (ratio_cathets * abs(100 - boost)) / 100
+                            # print(width1, high1)
+                        elif list_of_coordinates[0][0] > width and list_of_coordinates[0][1] < high:
+                            width1 += (1 * abs(100 - boost)) / 100
+                            ww += (1 * abs(100 - boost)) / 100
+                            high1 += (ratio_cathets * abs(100 - boost)) / 100
+                            hh += (ratio_cathets * abs(100 - boost)) / 100
+                        elif list_of_coordinates[0][0] < width and list_of_coordinates[0][1] < high:
+                            width1 -= (1 * abs(100 - boost)) / 100
+                            ww -= (1 * abs(100 - boost)) / 100
+                            high1 -= (ratio_cathets * abs(100 - boost)) / 100
+                            hh -= (ratio_cathets * abs(100 - boost)) / 100
+                        elif list_of_coordinates[0][0] < width and list_of_coordinates[0][1] > high:
+                            width1 -= (1 * abs(100 - boost)) / 100
+                            ww -= (1 * abs(100 - boost)) / 100
+                            high1 -= (ratio_cathets * abs(100 - boost)) / 100
+                            hh -= (ratio_cathets * abs(100 - boost)) / 100
+                        # sleep(0.5)
+                        boost += 1
+                        # print((round(width1), round(high1)), (round(ww), round(hh)), (round(intersection_coordinates[0][0]), round(intersection_coordinates[0][1])))
+                        if round(intersection_coordinates[0][0]) - 10 < round(ww) < round(
+                                intersection_coordinates[0][0]) + 10 \
+                                or round(intersection_coordinates[0][1]) - 10 < round(hh) < round(
+                            intersection_coordinates[0][1]) + 10:
+                            bb = False
+                            list_of_coordinates.clear()
+                            points.append([intersection_coordinates[0][0], intersection_coordinates[0][1], (255, 0, 0), 22])
+
                 for i in range(len(points)):
                     if points[i][3] == 22:
-                        pygame.draw.circle(screen, (200, 0, 0), (points[i][0], points[i][1]), 27)  # TODO отнимать от points[i][2] 55
+                        pygame.draw.circle(screen, (200, 0, 0), (points[i][0], points[i][1]),
+                                           27)  # TODO отнимать от points[i][2] 55
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][3])
                     else:
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
