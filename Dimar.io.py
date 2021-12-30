@@ -178,16 +178,16 @@ class Start_window(QMainWindow):
                         k = size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
                         points = board.set_view_2(k, size, points)
                         v *= (pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))
-                        for i in range(len(points)):
-                            if 0 < points[i][0] < width * 2 and 0 < points[i][1] < high * 2:
-                                pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), 10)
+                        for g in range(len(points)):
+                            if 0 < points[g][0] < width * 2 and 0 < points[g][1] < high * 2:
+                                pygame.draw.circle(screen, points[g][2], (points[g][0], points[g][1]), 10)
                     elif r < 150:
                         r = sqrt(((pi * (r ** 2)) + (pi * (i[-1] ** 2))) / pi)
                         v *= 0.995
 
                     try:
                         del points[points.index(i)]
-                    except:
+                    except Exception as e:
                         pass
                 del_points = []
                 screen.fill((235, 235, 235))
