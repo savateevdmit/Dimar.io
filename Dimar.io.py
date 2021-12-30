@@ -98,6 +98,9 @@ class Start_window(QMainWindow):
         def delenie(x, y, z):
             return [x, y, z]
 
+        def rr(r):
+            return r
+
         if __name__ == '__main__':
             clock = pygame.time.Clock()
             pygame.init()
@@ -125,6 +128,8 @@ class Start_window(QMainWindow):
             flag = False
             r_v = {}
             move = True
+            w = []
+            shift = []
             while running:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -135,14 +140,16 @@ class Start_window(QMainWindow):
                         if event.key == pygame.K_w and r >= 50:
                             b = True
                             koord = delenie(x, y, z)
-                            r -= 20
+                            r = sqrt((pi * (r ** 2) - pi * (20 ** 2)) / pi)
+                            w.append([koord, kf, kff, True])
                         elif event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
-                            if not flag and r >= 40:
+                            if r >= 40:
                                 koord = delenie(x, y, z)
                                 flag = True
                                 r /= 2
+
                             # v = r_v[int(r)]
-                            r1 = r
+                            r1 = rr(r)
                     if event.type == pygame.MOUSEMOTION:
                         x, y = event.pos
                         x1, y1 = x, y
@@ -187,21 +194,28 @@ class Start_window(QMainWindow):
                 board.render(screen)
 
                 if b:
-                    if kf < 300 and kff > 0:  # 0
-                        pygame.draw.circle(screen, (200, 0, 0),
-                                           ((koord[0] / koord[2]) * kf + width, koord[1] / koord[2] * kf + high),
-                                           26)
-                        pygame.draw.circle(screen, (255, 0, 0),
-                                           ((koord[0] / koord[2]) * kf + width, koord[1] / koord[2] * kf + high), 21)
-                        kf += kff
-                        kff -= 0.5
-                    else:
-                        b = False
-                        kf = 0
-                        kff = 15
+                    for i in w:
+                        if i[1] < 300 and i[2] > 0:  # 0
+                            pygame.draw.circle(screen, (200, 0, 0),
+                                               ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
+                                               26)
+                            pygame.draw.circle(screen, (255, 0, 0),
+                                               ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high), 21)
+                            i[1] += i[2]
+                            i[2] -= 0.5
+                        else:
+                            i[3] = False
+                            i[1] = 0
+                            i[2] = 15
 
-                    if kff == 0:
-                        points.append([(koord[0] / koord[2]) * kf + width, koord[1] / koord[2] * kf + high, (255, 0, 0), 22])
+                        if i[2] == 0:
+                            points.append([(i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high, (255, 0, 0), 22])
+                            del w[w.index(i)]
+                    for i in w:
+                        if i[3]:
+                            b = True
+                        else:
+                            b = False
 
                 for i in range(len(points)):
                     if points[i][3] == 22:
@@ -219,7 +233,8 @@ class Start_window(QMainWindow):
                                     points[i][1] < koord[1] / koord[2] * kf + high + r1:
                                 del_points.append(points[i])
                         for i in del_points:
-                            r1 = sqrt(((pi * (r1 ** 2)) + (pi * (i[-1] ** 2))) / pi)
+                            r2 = r1
+                            r1 += (sqrt(((pi * (r1 ** 2)) + (pi * (i[-1] ** 2))) / pi) - r2) / 2
                             try:
                                 del points[points.index(i)]
                             except:
