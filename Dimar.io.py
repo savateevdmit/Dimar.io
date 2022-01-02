@@ -1,4 +1,4 @@
-import sys
+import sys, os
 from math import *
 from random import *
 
@@ -93,13 +93,23 @@ class Start_window(QMainWindow):
         def pointss(s, r):
             return [[randrange(board.move()[0], s * 100 + board.move()[0]),  # создание еды
                      randrange(board.move()[1], s * 100 + board.move()[1]),
-                     (randrange(0, 255), randrange(0, 255), randrange(0, 255)), r] for _ in range(3000)]
+                     (randrange(0, 255), randrange(0, 255), randrange(0, 255)), False, r] for _ in range(3000)]
 
         def delenie(x, y, z):
             return [x, y, z]
 
         def rr(r):
             return r
+
+        class Virus:
+            def __init__(self, name):
+                self.name = name
+
+            def load_image(name):
+                fullname = os.path.join('Application Icons', name)
+                image = pygame.image.load(fullname)
+                image = image.convert_alpha()
+                return image
 
         if __name__ == '__main__':
             clock = pygame.time.Clock()
@@ -117,6 +127,8 @@ class Start_window(QMainWindow):
             m = 1
             b = False
             bb = False
+            virus = True
+            eat_virus = False
             plr = []
             size = 100
             width1, high1 = 0, 0
@@ -126,10 +138,13 @@ class Start_window(QMainWindow):
             kf = 0
             kff = 15
             flag = False
+            draw = 1
             r_v = {}
             move = True
             w = []
             shift = []
+            image1 = pygame.transform.scale(Virus.load_image("virus.png"), (150, 150))
+
             while running:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -160,16 +175,28 @@ class Start_window(QMainWindow):
                 if len(points) < 3000:
                     points.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
                                    randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
-                                   (randrange(0, 255), randrange(0, 255), randrange(0, 255)), r_points])
+                                   (randrange(0, 255), randrange(0, 255), randrange(0, 255)), False, r_points])
                 if (x > 50 or x < -50) or (y > 50 or y < -50):
                     move = False
                     points = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points)
                     width1 -= (x / z) * v
                     high1 -= (y / z) * v
+                print(r)
 
                 for i in range(len(points)):
-                    if width - r < points[i][0] < width + r and high - r < points[i][1] < high + r:
-                        del_points.append(points[i])
+                    if (width - r < points[i][0] < width + r and high - r < points[i][1] < high + r) and r >= points[i][-1]:
+                        if points[i][3]:
+                            del_points.append(points[i])
+                            draw = None
+                            koord = delenie(x, y, z)
+                            r -= 40
+
+                            for i in range(randrange(5, 10)):
+                                w.append(
+                                    [delenie(randrange(-20, 20), randrange(-20, 20), sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0, 10, True])
+                            b = True
+                        else:
+                            del_points.append(points[i])
 
                 for i in del_points:
                     if r >= 150:
@@ -193,6 +220,16 @@ class Start_window(QMainWindow):
                 screen.fill((235, 235, 235))
                 board.render(screen)
 
+                for i in range(len(points)):
+                    if points[i][-1] == 22:
+                        pygame.draw.circle(screen, (200, 0, 0), (points[i][0], points[i][1]),
+                                           27)  # TODO отнимать от points[i][2] 55
+                        pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][-1])
+                    elif points[i][-1] == 70:
+                        pygame.draw.circle(screen, (0, 0, 0), (points[i][0] + 75, points[i][1] + 75), 70)
+                    else:
+                        pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
+
                 if b:
                     for i in w:
                         if i[1] < 300 and i[2] > 0:  # 0
@@ -200,7 +237,8 @@ class Start_window(QMainWindow):
                                                ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
                                                26)
                             pygame.draw.circle(screen, (255, 0, 0),
-                                               ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high), 21)
+                                               ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
+                                               21)
                             i[1] += i[2]
                             i[2] -= 0.5
                         else:
@@ -209,21 +247,14 @@ class Start_window(QMainWindow):
                             i[2] = 15
 
                         if i[2] == 0:
-                            points.append([(i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high, (255, 0, 0), 22])
+                            points.append(
+                                [(i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high, (250, 0, 0), False, 22])
                             del w[w.index(i)]
                     for i in w:
                         if i[3]:
                             b = True
                         else:
                             b = False
-
-                for i in range(len(points)):
-                    if points[i][3] == 22:
-                        pygame.draw.circle(screen, (200, 0, 0), (points[i][0], points[i][1]),
-                                           27)  # TODO отнимать от points[i][2] 55
-                        pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][3])
-                    else:
-                        pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
 
                 if flag:
                     if kf < 300 and kff > -15.5:  # 0
@@ -253,8 +284,21 @@ class Start_window(QMainWindow):
                         kff = 15
                         r += r1
 
+                if r >= 70:
+                    eat_virus = True
+                    for i in points:
+                        if i[-2] and draw != None:
+                            screen.blit(image1, (i[0], i[1]))
+                if virus:
+                    points.append([1100, 100, (0, 0, 0), True, 70])
+                    virus = False
+
                 pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
                 pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
+                if r < 70:
+                    for i in points:
+                        if i[-2] and draw != None:
+                            screen.blit(image1, (i[0], i[1]))
                 pygame.display.flip()
                 clock.tick(FPS)
             pygame.quit()
