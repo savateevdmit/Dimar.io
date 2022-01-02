@@ -45,7 +45,7 @@ class Start_window(QMainWindow):
                 self.top = randrange(-4300, high)
                 self.cell_size = 75
 
-            def set_view(self, left, top, cell_size, a):
+            def set_view(self, left, top, cell_size, a, v):
                 # print((left, top, cell_size, a))
                 # print()
                 # print('----------------------------')
@@ -53,17 +53,24 @@ class Start_window(QMainWindow):
                 for i in range(len(a)):
                     a[i][0] += left
                     a[i][1] += top
+                for i in range(len(v)):
+                    v[i][0] += left
+                    v[i][1] += top
                 self.left += left
                 self.top += top
                 if self.left < -1 * self.cell_size * self.width + width or self.left > width:
                     self.left -= left
                     for i in range(len(a)):
                         a[i][0] -= left
+                    for i in range(len(v)):
+                        v[i][0] -= left
                 if self.top < -1 * self.cell_size * self.width + high or self.top > high:
                     self.top -= top
                     for i in range(len(a)):
                         a[i][1] -= top
-                return a
+                    for i in range(len(v)):
+                        v[i][1] -= top
+                return a, v
 
             def set_view_2(self, k, s, a):
                 left = self.left - width
@@ -127,7 +134,7 @@ class Start_window(QMainWindow):
             m = 1
             b = False
             bb = False
-            virus = True
+            viruss = True
             eat_virus = False
             plr = []
             size = 100
@@ -142,8 +149,9 @@ class Start_window(QMainWindow):
             r_v = {}
             move = True
             w = []
-            shift = []
+            virus = []
             image1 = pygame.transform.scale(Virus.load_image("virus.png"), (150, 150))
+            del_virus = []
 
             while running:
                 for event in pygame.event.get():
@@ -175,28 +183,27 @@ class Start_window(QMainWindow):
                 if len(points) < 3000:
                     points.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
                                    randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
-                                   (randrange(0, 255), randrange(0, 255), randrange(0, 255)), False, r_points])
+                                   (randrange(0, 255), randrange(0, 255), randrange(0, 255)), r_points])
                 if (x > 50 or x < -50) or (y > 50 or y < -50):
                     move = False
-                    points = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points)
+                    points, virus = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points, virus)
                     width1 -= (x / z) * v
                     high1 -= (y / z) * v
-                print(r)
 
+                for i in range(len(virus)):
+                    if (width - r < virus[i][0] < width + r and high - r < virus[i][1] < high + r) and r >= virus[i][-1]:
+                        del_virus.append(virus[i])
+                        draw = None
+                        koord = delenie(x, y, z)
+                        r -= 40
+
+                        for i in range(randrange(5, 10)):
+                            w.append(
+                                [delenie(randrange(-20, 20), randrange(-20, 20), sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0, 10, True])
+                        b = True
                 for i in range(len(points)):
                     if (width - r < points[i][0] < width + r and high - r < points[i][1] < high + r) and r >= points[i][-1]:
-                        if points[i][3]:
-                            del_points.append(points[i])
-                            draw = None
-                            koord = delenie(x, y, z)
-                            r -= 40
-
-                            for i in range(randrange(5, 10)):
-                                w.append(
-                                    [delenie(randrange(-20, 20), randrange(-20, 20), sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0, 10, True])
-                            b = True
-                        else:
-                            del_points.append(points[i])
+                        del_points.append(points[i])
 
                 for i in del_points:
                     if r >= 150:
@@ -217,6 +224,26 @@ class Start_window(QMainWindow):
                     except Exception as e:
                         pass
                 del_points = []
+
+                for i in del_virus:
+                    if r >= 150:
+                        size *= (pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))
+                        r_points *= size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
+                        k = size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
+                        points = board.set_view_2(k, size, points)
+                        v *= (pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))
+                        for g in range(len(points)):
+                            if 0 < points[g][0] < width * 2 and 0 < points[g][1] < high * 2:
+                                pygame.draw.circle(screen, points[g][2], (points[g][0], points[g][1]), 10)
+                    elif r < 150:
+                        r = sqrt(((pi * (r ** 2)) + (pi * (i[-1] ** 2))) / pi)
+                        v *= 0.995
+
+                    try:
+                        del virus[virus.index(i)]
+                    except Exception as e:
+                        pass
+                del_virus = []
                 screen.fill((235, 235, 235))
                 board.render(screen)
 
@@ -225,8 +252,8 @@ class Start_window(QMainWindow):
                         pygame.draw.circle(screen, (200, 0, 0), (points[i][0], points[i][1]),
                                            27)  # TODO отнимать от points[i][2] 55
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][-1])
-                    elif points[i][-1] == 70:
-                        pygame.draw.circle(screen, (0, 0, 0), (points[i][0] + 75, points[i][1] + 75), 70)
+                    # elif points[i][-1] == 70:
+                    #     pygame.draw.circle(screen, (0, 0, 0), (points[i][0] + 75, points[i][1] + 75), 70)
                     else:
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
 
@@ -286,17 +313,17 @@ class Start_window(QMainWindow):
 
                 if r >= 70:
                     eat_virus = True
-                    for i in points:
-                        if i[-2] and draw != None:
+                    for i in virus:
+                        if draw != None:
                             screen.blit(image1, (i[0], i[1]))
-                if virus:
-                    points.append([1100, 100, (0, 0, 0), True, 70])
-                    virus = False
+                if viruss:
+                    virus.append([1100, 100, (0, 0, 0), 70])
+                    viruss = False
 
                 pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
                 pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
                 if r < 70:
-                    for i in points:
+                    for i in virus:
                         if i[-2] and draw != None:
                             screen.blit(image1, (i[0], i[1]))
                 pygame.display.flip()
