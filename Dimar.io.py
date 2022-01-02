@@ -195,8 +195,7 @@ class Start_window(QMainWindow):
                         del_virus.append(virus[i])
                         draw = None
                         koord = delenie(x, y, z)
-                        r -= 40
-
+                        r = sqrt((pi * (r ** 2) - pi * (40 ** 2)) / pi)
                         for i in range(randrange(5, 10)):
                             w.append(
                                 [delenie(randrange(-20, 20), randrange(-20, 20), sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0, 10, True])
