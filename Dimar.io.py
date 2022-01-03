@@ -5,9 +5,9 @@ from random import *
 import pygame
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
-from shapely.geometry import LineString
-from shapely.geometry import Point
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
+
+pygame.font.init()
 
 FPS = 30
 
@@ -34,6 +34,31 @@ class Start_window(QMainWindow):
         self.set.show()
 
     def click(self):
+        play = True
+        name = self.lineEdit.text()
+        if len(name) > 9:
+            play = False
+            self.message('Длина имени не может быть больше 9 символов!')
+
+        elif len(name) == 0:
+            play = False
+            self.message('Введите имя!')
+
+        if play:
+            self.play()
+
+    def message(self, text):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(text)
+        msg.setWindowTitle('Dimar.io')
+        # icon = QIcon()
+        # icon.addFile(u"Application Icons/log.png", QSize(), QIcon.Normal, QIcon.Off)
+        # msg.setWindowIcon(icon)
+        msg.exec_()
+
+    def play(self):
+        name = self.lineEdit.text()
         global x, x1, y1, width1, high1, bb, intersection_coordinates, list_of_coordinates, boost, ww, hh, koord, y, z
 
         class Board:
@@ -146,7 +171,7 @@ class Start_window(QMainWindow):
             running = True
             board = Board(100, 100)
             v = 12
-            r = 20
+            r = 30
             r_points = 10
             i = 0
             m = 1
@@ -163,11 +188,11 @@ class Start_window(QMainWindow):
             kf = 0
             kff = 20
             flag = False
-            draw = 1
             r_v = {}
             move = True
             w = []
             virus = []
+            number_of_viruses = randrange(40, 70)
             image1 = pygame.transform.scale(Virus.load_image("virus.png"), (150, 150))
             del_virus = []
             bots = bot(size)
@@ -214,12 +239,16 @@ class Start_window(QMainWindow):
                 for i in range(len(virus)):
                     if (width - r < virus[i][0] < width + r and high - r < virus[i][1] < high + r) and r >= virus[i][-1]:
                         del_virus.append(virus[i])
-                        draw = None
+                        virus[i][-3] == False
+                        virus.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
+                                      randrange(int(board.move()[1]), int(size * 100 + board.move()[1])), (0, 0, 0),
+                                      True, True, 70])
                         koord = delenie(x, y, z)
-                        r = sqrt((pi * (r ** 2) - pi * (40 ** 2)) / pi)
                         for i in range(randrange(5, 10)):
+                            r -= 5
                             w.append(
-                                [delenie(randrange(-20, 20), randrange(-20, 20), sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0, 10, True])
+                                [delenie(randrange(-20, 20), randrange(-20, 20),
+                                         sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0, 10, True])
                         b = True
                 for i in range(len(points)):
                     if (width - r < points[i][0] < width + r and high - r < points[i][1] < high + r) and r >= points[i][-1]:
@@ -306,36 +335,41 @@ class Start_window(QMainWindow):
                         pygame.draw.circle(screen, (200, 0, 0), (points[i][0], points[i][1]),
                                            27)  # TODO отнимать от points[i][2] 55
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][-1])
-                    # elif points[i][-1] == 70:
-                    #     pygame.draw.circle(screen, (0, 0, 0), (points[i][0] + 75, points[i][1] + 75), 70)
                     else:
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
-
-                if b:
-                    for i in w:
-                        if i[1] < 300 and i[2] > 0:  # 0
-                            pygame.draw.circle(screen, (200, 0, 0),
+                for i in range(len(virus)):
+                    if points[i][-1] == 70:
+                        pygame.draw.circle(screen, (0, 0, 0), (points[i][0] + 75, points[i][1] + 75), 70)
+                try:
+                    if b:
+                        for i in w:
+                            if i[1] < 300 and i[2] > 0:  # 0
+                                pygame.draw.circle(screen, (200, 0, 0),
                                                ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
                                                26)
-                            pygame.draw.circle(screen, (255, 0, 0),
+                                pygame.draw.circle(screen, (255, 0, 0),
                                                ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
                                                21)
-                            i[1] += i[2]
-                            i[2] -= 0.5
-                        else:
-                            i[3] = False
-                            i[1] = 0
-                            i[2] = 15
+                                i[1] += i[2]
+                                i[2] -= 0.5
+                            else:
+                                i[3] = False
+                                i[1] = 0
+                                i[2] = 15
 
-                        if i[2] == 0:
-                            points.append(
-                                [(i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high, (250, 0, 0), False, 22])
-                            del w[w.index(i)]
-                    for i in w:
-                        if i[3]:
-                            b = True
-                        else:
-                            b = False
+                            if i[2] == 0:
+                                points.append(
+                                    [(i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high, (250, 0, 0),
+                                    False, 22])
+                                del w[w.index(i)]
+                        for i in w:
+                            if i[3]:
+                                b = True
+                            else:
+                                b = False
+
+                except ZeroDivisionError:
+                    pass
 
                 if flag:
                     r2 = r1
@@ -394,23 +428,40 @@ class Start_window(QMainWindow):
                 if r >= 70:
                     eat_virus = True
                     for i in virus:
-                        if draw != None:
+                        if i[-3]:
                             screen.blit(image1, (i[0], i[1]))
+                        else:
+                            del i
                 if viruss:
-                    virus.append([1100, 100, (0, 0, 0), 70])
-                    viruss = False
+                    for i in range(number_of_viruses):
+                        virus.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
+                                      randrange(int(board.move()[1]), int(size * 100 + board.move()[1])), (0, 0, 0),
+                                      True, True, 70])
+                        viruss = False
+
                 for u in range(len(bots)):
                     if 0 < bots[u][0] + bots[u][-1] and bots[u][0] - bots[u][-1] < width * 2 and 0 < bots[u][1] + bots[u][-1] and bots[u][1] - bots[u][-1] < high * 2 and bots[u][-1] < r:
                         pygame.draw.circle(screen, bots[u][2], (bots[u][0], bots[u][1]), bots[u][-1])
+
                 pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
                 pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
+
+                text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', int(r // 2.5)).render(name, True, [0, 0, 0])
+                text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', int(r // 3.5)).render(str(round(r) - 30), True,
+                                                                                             [0, 0, 0])
+                screen.blit(text, (width - (int(len(name) * int(r // 5.2))) // 2, high - int(r // 2.2)))
+                screen.blit(text1, (width - (int(len(name) * int(r // 19))) // 2, high - int(r // 30)))
+
                 for g in range(len(bots)):
                     if 0 < bots[g][0] + bots[g][-1] and bots[g][0] - bots[g][-1] < width * 2 and 0 < bots[g][1] + bots[g][-1] and bots[g][1] - bots[g][-1] < high * 2 and bots[g][-1] > r:
                         pygame.draw.circle(screen, bots[g][2], (bots[g][0], bots[g][1]), bots[g][-1])
+
                 if r < 70:
                     for i in virus:
-                        if i[-2] and draw != None:
+                        if i[-2] and i[-3]:
                             screen.blit(image1, (i[0], i[1]))
+                        elif not i[-3]:
+                            del i
                 pygame.display.flip()
                 clock.tick(FPS)
             pygame.quit()
