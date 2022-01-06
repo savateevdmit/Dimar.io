@@ -542,6 +542,7 @@ class Start_window(QMainWindow):
                         bots[u][1] += ((abs(bots[u][1] - high) / z1) * 10) * (high - bots[u][1]) / abs(
                             high - bots[u][1]) * -1
 
+
                 pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
                 pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
 
