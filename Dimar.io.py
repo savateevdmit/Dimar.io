@@ -41,8 +41,7 @@ class Start_window(QMainWindow):
             self.message('Длина имени не может быть больше 9 символов!')
 
         elif len(self.name) == 0:
-            play = False
-            self.message('Введите имя!')
+            self.name = 'Guest'
 
         if play:
             self.play()
@@ -70,10 +69,10 @@ class Start_window(QMainWindow):
                 self.label_3.setText(str(f'00:{round(self.end - self.start)}'))
         self.label_2.setText(str(self.name))
         self.label_4.setText(str(self.food))
-        self.label_5.setText(str(round(self.score)))
+        self.label_5.setText(str(round(self.max_score)))
         self.toolButton_3.clicked.connect(self.replay)
         self.toolButton_4.clicked.connect(self.menu)
-        name, time, food, score = self.label_2.text(), self.label_3.text(), self.label_4.text(), self.label_5.text()
+        name, time, food, score = self.label_2.text(), round(self.end - self.start), self.label_4.text(), self.label_5.text()
         self.insert_varible_into_table(name, time, food, score)
 
     def insert_varible_into_table(self, name, time, food, score):  # добавление в базу данных
@@ -95,6 +94,9 @@ class Start_window(QMainWindow):
 
     def replay(self):
         self.play()
+
+    def cancel(self):
+        self.hide()
 
     def menu(self):
         uic.loadUi('Ui files/start.ui', self)  # Загружаем дизайн
@@ -119,8 +121,7 @@ class Start_window(QMainWindow):
 
     def play(self):
         uic.loadUi('Ui files/game_over.ui', self)
-        # self.name = 'mhg'
-        # self.name = self.lineEdit.text()
+        # self.exit()
         global x, x1, y1, width1, high1, bb, intersection_coordinates, list_of_coordinates, boost, ww, hh, koord, y, z
 
         class Board:
@@ -276,6 +277,7 @@ class Start_window(QMainWindow):
             del_points = []
             kf = 0
             self.food = 0
+            self.max_score = 0
             kff = 20
             flag = False
             r_v = {}
@@ -302,8 +304,11 @@ class Start_window(QMainWindow):
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
+                            uic.loadUi('Ui files/game_over.ui', self)
+                            self.end = time.monotonic()
+                            self.exit()
                             running = False
-                        if event.key == pygame.K_w and r >= 50:
+                        if event.key == pygame.K_w and r >= 50 and self.score >= 15:
                             aaaaa = r
                             b = True
                             kff1 = (232 + r) // 15.47
@@ -365,7 +370,7 @@ class Start_window(QMainWindow):
                         self.score += bots[i][-1] / 20
 
                     elif r * 1.05 < bots[i][-1] and bots[i][0] - bots[i][-1] < width < bots[i][0] + bots[i][-1] and bots[i][1] - bots[i][-1] < high < bots[i][1] + bots[i][-1] and abs(bots[i][0] - width) < 0.5 * bots[i][-1] and abs(bots[i][1] - high) < 0.5 * bots[i][-1]:
-                        # uic.loadUi('Ui files/game_over.ui', self)
+                        uic.loadUi('Ui files/game_over.ui', self)
                         self.end = time.monotonic()
                         self.exit()
                         running = False
@@ -385,7 +390,7 @@ class Start_window(QMainWindow):
                             k = 0.999
                             v *= 0.999
                         s_im *= k
-                        image1 = pygame.transform.scale(Virus.load_image("virus.png"), (s_im, s_im))
+                        image1 = pygame.transform.scale(Virus.load_image("virus.png"), (round(s_im), round(s_im)))
                         points, virus, bots = board.set_view_2(k, size, points, virus, bots)
                         virus_radius *= k
 
@@ -639,6 +644,8 @@ class Start_window(QMainWindow):
                         elif bots[u][1] < t:
                             bots[u][1] = t
 
+                if self.score > self.max_score:
+                    self.max_score = self.score
 
                 pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
                 pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
@@ -718,6 +725,23 @@ class Info(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi('Ui files/info.ui', self)
+
+        sqlite_connection = sqlite3.connect('Rating.db')
+        cursor = sqlite_connection.cursor()
+        name_time_food_score = cursor.execute(
+            "select * from History").fetchall()
+        all_time = 0
+        all_food = 0
+        max_score = 0
+        for i in name_time_food_score:
+            all_time += i[1]
+            all_food += i[2]
+            if i[-1] > max_score:
+                max_score = i[-1]
+        self.label_2.setText(str(f'{round(all_time / 3600, 2)} hour'))
+        self.label_3.setText(str(len(name_time_food_score)))
+        self.label_4.setText(str(all_food))
+        self.label_5.setText(str(max_score))
 
 
 class Settings(QDialog):

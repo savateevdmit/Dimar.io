@@ -117,7 +117,7 @@ QFontDatabase fontDatabase;
 fontDatabase.addApplicationFont(&quot;:/Bubbleboddy-Neue-trial.ttf&quot;);</string>
     </property>
     <property name="text">
-     <string>233</string>
+     <string/>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
@@ -147,7 +147,7 @@ QFontDatabase fontDatabase;
 fontDatabase.addApplicationFont(&quot;:/Bubbleboddy-Neue-trial.ttf&quot;);</string>
     </property>
     <property name="text">
-     <string>233</string>
+     <string/>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
@@ -177,7 +177,7 @@ QFontDatabase fontDatabase;
 fontDatabase.addApplicationFont(&quot;:/Bubbleboddy-Neue-trial.ttf&quot;);</string>
     </property>
     <property name="text">
-     <string>233</string>
+     <string/>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
@@ -207,7 +207,7 @@ QFontDatabase fontDatabase;
 fontDatabase.addApplicationFont(&quot;:/Bubbleboddy-Neue-trial.ttf&quot;);</string>
     </property>
     <property name="text">
-     <string>233</string>
+     <string/>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
