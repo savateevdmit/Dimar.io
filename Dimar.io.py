@@ -14,11 +14,13 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
 pygame.font.init()
 
 FPS = 30
+COLOR = []
 
 
 class Start_window(QMainWindow):
     def __init__(self):
         super().__init__()
+        COLOR.append(((250, 0, 0), (200, 0, 0)))
         uic.loadUi('Ui files/start.ui', self)  # Загружаем дизайн
         self.showFullScreen()
         self.toolButton.clicked.connect(self.click)
@@ -311,7 +313,7 @@ class Start_window(QMainWindow):
                         if event.key == pygame.K_w and r >= 50 and self.score >= 15:
                             aaaaa = r
                             b = True
-                            kff1 = (232 + r) // 15.47
+                            kff1 = (232 + r) // 11.5
                             koord = delenie(x, y, z)
                             r = sqrt((pi * (r ** 2) - pi * (20 ** 2)) / pi)
                             w.append([koord, kf1, kff1, width, high])
@@ -456,7 +458,7 @@ class Start_window(QMainWindow):
                                 # pygame.draw.circle(screen, (200, 0, 0),
                                 #                ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
                                 #                26)
-                                pygame.draw.circle(screen, (255, 0, 0),
+                                pygame.draw.circle(screen, (COLOR[0][0]),
                                                ((i[0][0] / i[0][2]) * i[1] + i[-2], i[0][1] / i[0][2] * i[1] + i[-1]),
                                                21)
                                 i[1] += i[2]
@@ -476,7 +478,7 @@ class Start_window(QMainWindow):
 
                             if i[2] == 0:
                                 points.append(
-                                    [(i[0][0] / i[0][2]) * i[1] + i[-2], i[0][1] / i[0][2] * i[1] + i[-1], (250, 0, 0),
+                                    [(i[0][0] / i[0][2]) * i[1] + i[-2], i[0][1] / i[0][2] * i[1] + i[-1], (COLOR[0][0]),
                                     False, 22])
                                 del w[w.index(i)]
 
@@ -560,10 +562,10 @@ class Start_window(QMainWindow):
                                 del bots[bots.index(i)]
                             except:
                                 pass
-                        pygame.draw.circle(screen, (200, 0, 0),
+                        pygame.draw.circle(screen, COLOR[0][1],
                                            ((koord[0] / koord[2]) * kf + width, koord[1] / koord[2] * kf + high),
                                            r2 + 5)
-                        pygame.draw.circle(screen, (255, 0, 0),
+                        pygame.draw.circle(screen, COLOR[0][0],
                                            ((koord[0] / koord[2]) * kf + width, koord[1] / koord[2] * kf + high), r2)
                         kf += kff
                         kff -= 0.5
@@ -647,12 +649,12 @@ class Start_window(QMainWindow):
                 if self.score > self.max_score:
                     self.max_score = self.score
 
-                pygame.draw.circle(screen, (200, 0, 0), (width, high), r + 5)
-                pygame.draw.circle(screen, (255, 0, 0), (width, high), r)
+                pygame.draw.circle(screen, COLOR[0][1], (width, high), r + 5)
+                pygame.draw.circle(screen, COLOR[0][0], (width, high), r)
 
-                text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', int(r // 2.5)).render(self.name, True, [0, 0, 0])
+                text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', int(r // 2.5)).render(self.name, True, [255, 255, 255])
                 text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', int(r // 3.5)).render(str(round(self.score)), True,
-                                                                                             [0, 0, 0])
+                                                                                             [255, 255, 255])
                 screen.blit(text, (width - (int(len(self.name) * int(r // 5.2))) // 2, high - int(r // 2.2)))
                 screen.blit(text1, (width - (int(len(self.name) * int(r // 19))) // 2, high - int(r // 30)))
 
@@ -748,6 +750,28 @@ class Settings(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi('Ui files/settings.ui', self)
+        self.radioButton.toggled.connect(self.red)
+        self.radioButton_2.toggled.connect(self.green)
+        self.radioButton_3.toggled.connect(self.blue)
+        self.toolButton.clicked.connect(self.save)
+
+    def red(self):
+        red = ((250, 0, 0), (200, 0, 0))
+        COLOR.clear()
+        COLOR.append(red)
+
+    def green(self):
+        green = ((0, 250, 0), (0, 200, 0))
+        COLOR.clear()
+        COLOR.append(green)
+
+    def blue(self):
+        blue = ((0, 0, 250), (0, 0, 200))
+        COLOR.clear()
+        COLOR.append(blue)
+
+    def save(self):
+        self.hide()
 
 
 def except_hook(cls, exception, traceback):
