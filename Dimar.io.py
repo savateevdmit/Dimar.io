@@ -15,7 +15,7 @@ pygame.font.init()
 
 FPS = 30
 COLOR = []
-
+COLORS = [((255, 80, 36), (240, 48, 0)), ((255, 136, 0), (255, 126, 0)), ((214, 174, 1), (216, 169, 3))]
 
 class Start_window(QMainWindow):
     def __init__(self):
@@ -74,18 +74,18 @@ class Start_window(QMainWindow):
         self.label_5.setText(str(round(self.max_score)))
         self.toolButton_3.clicked.connect(self.replay)
         self.toolButton_4.clicked.connect(self.menu)
-        name, time, food, score = self.label_2.text(), round(self.end - self.start), self.label_4.text(), self.label_5.text()
-        self.insert_varible_into_table(name, time, food, score)
+        name, time, food, score, win = self.label_2.text(), round(self.end - self.start), self.label_4.text(), self.label_5.text(), self.win
+        self.insert_varible_into_table(name, time, food, score, win)
 
-    def insert_varible_into_table(self, name, time, food, score):  # добавление в базу данных
+    def insert_varible_into_table(self, name, time, food, score, win):  # добавление в базу данных
         sqlite_connection = sqlite3.connect('Rating.db')
         cursor = sqlite_connection.cursor()
 
         sqlite_insert_with_param = """INSERT INTO History
-                              (Name, Time, Food, Score)
-                              VALUES (?, ?, ?, ?);"""
+                              (Name, Time, Food, Score, Win)
+                              VALUES (?, ?, ?, ?, ?);"""
 
-        data_tuple = (name, time, food, score)
+        data_tuple = (name, time, food, score, win)
         cursor.execute(sqlite_insert_with_param, data_tuple)
         sqlite_connection.commit()
 
@@ -122,7 +122,7 @@ class Start_window(QMainWindow):
         msg.exec_()
 
     def play(self):
-        uic.loadUi('Ui files/game_over.ui', self)
+        # uic.loadUi('Ui files/game_over.ui', self)
         # self.exit()
         global x, x1, y1, width1, high1, bb, intersection_coordinates, list_of_coordinates, boost, ww, hh, koord, y, z
 
@@ -135,7 +135,7 @@ class Start_window(QMainWindow):
                 self.top = randrange(-4300, high)
                 self.cell_size = 75
 
-            def set_view(self, left, top, cell_size, a, v, b, w, w1):
+            def set_view(self, left, top, cell_size, a, v, b, w, w1, sb):
                 # print((left, top, cell_size, a))
                 # print()
                 # print('----------------------------')
@@ -155,6 +155,9 @@ class Start_window(QMainWindow):
                 for i in range(len(w1)):
                     w1[i][-3] += left
                     w1[i][-2] += top
+                for i in range(len(sb)):
+                    sb[i][0] += left
+                    sb[i][1] += top
                 self.left += left
                 self.top += top
                 if self.left < -1 * self.cell_size * self.width + width or self.left > width:
@@ -169,6 +172,8 @@ class Start_window(QMainWindow):
                         w[i][-2] -= left
                     for i in range(len(w1)):
                         w1[i][-3] -= left
+                    for i in range(len(sb)):
+                        sb[i][0] -= left
                 if self.top < -1 * self.cell_size * self.width + high or self.top > high:
                     self.top -= top
                     for i in range(len(a)):
@@ -181,7 +186,9 @@ class Start_window(QMainWindow):
                         w[i][-1] -= top
                     for i in range(len(w1)):
                         w1[i][-2] -= top
-                return a, v, b, w, w1
+                    for i in range(len(sb)):
+                        sb[i][1] -= top
+                return a, v, b, w, w1, sb
 
             def set_view_2(self, k, s, a, v, b):
                 left = self.left - width
@@ -229,11 +236,11 @@ class Start_window(QMainWindow):
 
         def bot(s):
             b = []
-            for _ in range(25):
+            for _ in range(30):
                 a = randrange(20, 350)
                 b.append([randrange(board.move()[0], s * 100 + board.move()[0]),  # создание еды
                      randrange(board.move()[1], s * 100 + board.move()[1]),
-                     (randrange(0, 255), randrange(0, 255), randrange(0, 255)), 12 * 0.997 ** (a - 20), a])
+                     (choice(COLORS)), True, 12 * 0.997 ** (a - 20), a])
             return b
 
         def delenie(x, y, z):
@@ -287,27 +294,33 @@ class Start_window(QMainWindow):
             w = []
             virus = []
             number_of_viruses = randrange(40, 70)
-            image1 = pygame.transform.scale(Virus.load_image("virus.png"), (180, 180))
+            image1 = pygame.transform.scale(Virus.load_image("virus.png"), (200, 200))
             del_virus = []
             bots = bot(size)
+            print(bots)
             del_bots = []
             kf1 = 0
             kff1 = 15
             self.score = 0
             del_pointsb = []
-            virus_radius = 90
+            virus_radius = 100
+            self.win = 0
             c = False
-            s_im = 180
+            s_im = 200
             w_bots = []
             del_virusb = []
+            sbots = []
+            del_shift = []
             while running:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
-                            uic.loadUi('Ui files/game_over.ui', self)
                             self.end = time.monotonic()
+                            uic.loadUi('Ui files/game_over.ui', self)
+                            self.show()
+                            time.sleep(0.2)
                             self.exit()
                             running = False
                         if event.key == pygame.K_w and r >= 50 and self.score >= 15:
@@ -318,7 +331,7 @@ class Start_window(QMainWindow):
                             r = sqrt((pi * (r ** 2) - pi * (20 ** 2)) / pi)
                             w.append([koord, kf1, kff1, width, high])
                             self.score -= (aaaaa - r)
-                        elif event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
+                        elif event.key == pygame.K_LSHIFT:
                             if r >= 40 and not flag:
                                 self.score /= 2
 
@@ -341,7 +354,7 @@ class Start_window(QMainWindow):
                                    (randrange(0, 255), randrange(0, 255), randrange(0, 255)), r_points])
                 if (x > 50 or x < -50) or (y > 50 or y < -50):
                     move = False
-                    points, virus, bots, w, w_bots = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points, virus, bots, w, w_bots)
+                    points, virus, bots, w, w_bots, sbots = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size, points, virus, bots, w, w_bots, sbots)
                     width1 -= (x / z) * v
                     high1 -= (y / z) * v
 
@@ -372,8 +385,10 @@ class Start_window(QMainWindow):
                         self.score += bots[i][-1] / 20
 
                     elif r * 1.05 < bots[i][-1] and bots[i][0] - bots[i][-1] < width < bots[i][0] + bots[i][-1] and bots[i][1] - bots[i][-1] < high < bots[i][1] + bots[i][-1] and abs(bots[i][0] - width) < 0.5 * bots[i][-1] and abs(bots[i][1] - high) < 0.5 * bots[i][-1]:
-                        uic.loadUi('Ui files/game_over.ui', self)
                         self.end = time.monotonic()
+                        uic.loadUi('Ui files/game_over.ui', self)
+                        self.show()
+                        time.sleep(0.2)
                         self.exit()
                         running = False
 
@@ -392,7 +407,7 @@ class Start_window(QMainWindow):
                             k = 0.999
                             v *= 0.999
                         s_im *= k
-                        image1 = pygame.transform.scale(Virus.load_image("virus.png"), (round(s_im), round(s_im)))
+                        image1 = pygame.transform.scale(Virus.load_image("virus.png"), (int(s_im), int(s_im)))
                         points, virus, bots = board.set_view_2(k, size, points, virus, bots)
                         virus_radius *= k
 
@@ -400,7 +415,7 @@ class Start_window(QMainWindow):
                             bots[h][-1] *= k
                         for g in range(len(points)):
                             if 0 < points[g][0] < width * 2 and 0 < points[g][1] < high * 2:
-                                pygame.draw.circle(screen, points[g][2], (points[g][0], points[g][1]), r_points)
+                                pygame.draw.circle(screen, points[g][2][0], (points[g][0], points[g][1]), r_points)
                     elif r < 150:
                         r = sqrt(((pi * (r ** 2)) + (pi * (i[-1] ** 2))) / pi)
                         # virus_radius *= k
@@ -443,8 +458,11 @@ class Start_window(QMainWindow):
                 board.render(screen)
                 #
                 for i in range(len(points)):
-                    if points[i][-1] == 22: # TODO отнимать от points[i][2] 55
-                        pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), points[i][-1])
+                    if points[i][-1] == 23: # TODO отнимать от points[i][2] 55
+                        pygame.draw.circle(screen, COLOR[0][1], (points[i][0], points[i][1]), points[i][-1])
+                        pygame.draw.circle(screen, COLOR[0][0], (points[i][0], points[i][1]), points[i][-1] - 4)
+                    elif points[i][-1] == 22:
+                        pygame.draw.circle(screen, points[i][2][0], (points[i][0], points[i][1]), points[i][-1])
                     else:
                         pygame.draw.circle(screen, points[i][2], (points[i][0], points[i][1]), r_points)
                 for i in range(len(virus)):
@@ -458,9 +476,13 @@ class Start_window(QMainWindow):
                                 # pygame.draw.circle(screen, (200, 0, 0),
                                 #                ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
                                 #                26)
+                                pygame.draw.circle(screen, (COLOR[0][1]),
+                                                   ((i[0][0] / i[0][2]) * i[1] + i[-2],
+                                                    i[0][1] / i[0][2] * i[1] + i[-1]),
+                                                   23)
                                 pygame.draw.circle(screen, (COLOR[0][0]),
                                                ((i[0][0] / i[0][2]) * i[1] + i[-2], i[0][1] / i[0][2] * i[1] + i[-1]),
-                                               21)
+                                               19)
                                 i[1] += i[2]
                                 if (i[0][0] / i[0][2]) * i[1] + i[-2] > l + size * 100:
                                     i[0][0] = i[0][2] * (l + size * 100 - i[-2]) / i[1]
@@ -479,7 +501,7 @@ class Start_window(QMainWindow):
                             if i[2] == 0:
                                 points.append(
                                     [(i[0][0] / i[0][2]) * i[1] + i[-2], i[0][1] / i[0][2] * i[1] + i[-1], (COLOR[0][0]),
-                                    False, 22])
+                                    False, 23])
                                 del w[w.index(i)]
 
                 except ZeroDivisionError:
@@ -493,7 +515,7 @@ class Start_window(QMainWindow):
                                 # pygame.draw.circle(screen, i[-1],
                                 #                ((i[0][0] / i[0][2]) * i[1] + width, i[0][1] / i[0][2] * i[1] + high),
                                 #                26)
-                                pygame.draw.circle(screen, i[-1],
+                                pygame.draw.circle(screen, i[-1][0],
                                                ((i[0][0] / i[0][2]) * i[1] + i[-3], i[0][1] / i[0][2] * i[1] + i[-2]),
                                                21)
                                 i[1] += i[2]
@@ -543,6 +565,21 @@ class Start_window(QMainWindow):
                                     koord[0] / koord[2]) * kf + width + r2 and koord[1] / koord[2] * kf + high - r2 < \
                                     virus[i][1] < koord[1] / koord[2] * kf + high + r2:
                                 del_virus.append(virus[i])
+                                virus[i][-3] = False
+                                virus.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
+                                              randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
+                                              (0, 0, 0),
+                                              True, True, 70])
+                                koord = delenie(x, y, z)
+                                r *= 0.35
+                                v /= 0.85
+                                self.score *= 0.35
+                                for i in range(randrange(20, 30)):
+                                    w.append(
+                                        [delenie(randrange(-20, 20), randrange(-20, 20),
+                                                 sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0,
+                                         (232 + r) // 15.47, width, high])
+                                b = True
                         for i in del_virus:
                             r2 += (sqrt(((pi * (r2 ** 2)) + (pi * (i[-1] ** 2))) / pi) - r2) / 2
                             try:
@@ -570,12 +607,12 @@ class Start_window(QMainWindow):
                         kf += kff
                         kff -= 0.5
                     else:
-
                         flag = False
                         self.score *= 2
                         kf = 0
                         kff = 20
                         r += r2
+
 
                 if r >= virus_radius:
                     eat_virus = True
@@ -629,7 +666,8 @@ class Start_window(QMainWindow):
                             except Exception as e:
                                 pass
                         del_virusb = []
-                        pygame.draw.circle(screen, bots[u][2], (bots[u][0], bots[u][1]), bots[u][-1])
+                        pygame.draw.circle(screen, bots[u][2][1], (bots[u][0], bots[u][1]), bots[u][-1] + 6)
+                        pygame.draw.circle(screen, bots[u][2][0], (bots[u][0], bots[u][1]), bots[u][-1])
                         del_pointsb = []
                         z1 = sqrt(abs(bots[u][0] - width) ** 2 + abs(bots[u][1] - high) ** 2)
                         bots[u][0] += ((abs(bots[u][0] - width) / z1) * bots[u][-2]) * (width - bots[u][0]) / abs(
@@ -648,6 +686,15 @@ class Start_window(QMainWindow):
 
                 if self.score > self.max_score:
                     self.max_score = self.score
+
+                if len(bots) == 0:
+                    self.end = time.monotonic()
+                    uic.loadUi('Ui files/win.ui', self)
+                    self.show()
+                    self.win = 1
+                    time.sleep(0.3)
+                    self.exit()
+                    running = False
 
                 pygame.draw.circle(screen, COLOR[0][1], (width, high), r + 5)
                 pygame.draw.circle(screen, COLOR[0][0], (width, high), r)
@@ -695,7 +742,8 @@ class Start_window(QMainWindow):
                             except Exception as e:
                                 pass
                         del_virusb = []
-                        pygame.draw.circle(screen, bots[u][2], (bots[u][0], bots[u][1]), bots[u][-1])
+                        pygame.draw.circle(screen, bots[u][2][1], (bots[u][0], bots[u][1]), bots[u][-1] + 4)
+                        pygame.draw.circle(screen, bots[u][2][0], (bots[u][0], bots[u][1]), bots[u][-1])
                         del_pointsb = []
                         z1 = sqrt(abs(bots[u][0] - width) ** 2 + abs(bots[u][1] - high) ** 2)
                         bots[u][0] += ((abs(bots[u][0] - width) / z1) * bots[u][-2]) * (width - bots[u][0]) / abs(
@@ -711,7 +759,88 @@ class Start_window(QMainWindow):
                             bots[u][1] = t + size * 100
                         elif bots[u][1] < t:
                             bots[u][1] = t
+                        if sqrt(abs((high - bots[u][1]) ** 2 + (width - bots[u][0]) ** 2)) < 700 and bots[u][-3] and bots[u][-1] / 2 > r * 1.3:
+                            sbots.append([bots[u][0], bots[u][1], bots[u][2], 1.6, u, bots[u][-2] * 1.2, bots[u][-1] / 2])
+                            bots[u][-1] /= 2
+                            flagb = True
+                            bots[u][-3] = False
+                    else:
+                        bots[u][-3] = True
 
+                for u in range(len(sbots)):
+                    if 0 < sbots[u][0] + sbots[u][-1] and sbots[u][0] - sbots[u][-1] < width * 2 and 0 < sbots[u][1] + \
+                            sbots[u][-1] and sbots[u][1] - sbots[u][-1] < high * 2 and sbots[u][-1] > r:
+                        for i in range(len(points)):
+                            if (sbots[u][0] - sbots[u][-1] < points[i][0] < sbots[u][0] + sbots[u][-1] and sbots[u][1] -
+                                sbots[u][-1] < points[i][1] < sbots[u][1] + r) and sbots[u][-1] >= \
+                                    points[i][-1]:
+                                del_pointsb.append(points[i])
+                        for i in del_pointsb:
+                            sbots[u][-1] = sqrt(((pi * (sbots[u][-1] ** 2)) + (pi * (i[-1] ** 2))) / pi)
+                            sbots[u][-2] *= 0.997
+                            del points[points.index(i)]
+                        for i in range(len(virus)):
+                            if (sbots[u][0] - sbots[u][-1] < virus[i][0] < sbots[u][0] + sbots[u][-1] and sbots[u][1] -
+                                sbots[u][-1] < virus[i][1] < sbots[u][1] + r) and sbots[u][-1] >= \
+                                    virus[i][-1]:
+                                del_virusb.append(virus[i])
+                                virus[i][-3] = False
+                                virus.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
+                                              randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
+                                              (0, 0, 0),
+                                              True, True, 70])
+                                koord = delenie(x, y, z)
+                                sbots[u][-1] *= 0.35
+                                sbots[u][-2] /= 0.95
+                                for i in range(randrange(20, 30)):
+                                    w_bots.append(
+                                        [delenie(randrange(-20, 20), randrange(-20, 20),
+                                                 sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0,
+                                         (232 + r) // 15.47, sbots[u][0], sbots[u][1][0], sbots[u][2]])
+                                c = True
+                        for i in del_virusb:
+                            try:
+                                del virus[virus.index(i)]
+                            except Exception as e:
+                                pass
+                        del_virusb = []
+                        pygame.draw.circle(screen, bots[u][2][1], (bots[u][0], bots[u][1]), bots[u][-1] + 6)
+                        pygame.draw.circle(screen, bots[u][2][0], (bots[u][0], bots[u][1]), bots[u][-1])
+                        del_pointsb = []
+
+                        if sbots[u][3] > 1:
+                            z4 = sqrt(abs(sbots[u][0] - width) ** 2 + abs(sbots[u][1] - high) ** 2)
+                            sbots[u][0] += ((abs(sbots[u][0] - width) / z4) * sbots[u][-2] * sbots[u][3]) * (
+                                        width - sbots[u][0]) / abs(
+                                width - sbots[u][0])
+                            sbots[u][1] += ((abs(sbots[u][1] - high) / z4) * sbots[u][-2] * sbots[u][3]) * (
+                                        high - sbots[u][1]) / abs(
+                                high - sbots[u][1])
+                        else:
+                            z4 = sqrt(abs(sbots[u][0] - bots[sbots[u][4]][0]) ** 2 + abs(sbots[u][1] - bots[sbots[u][4]][1]) ** 2)
+                            sbots[u][0] += ((abs(sbots[u][0] - bots[sbots[u][4]][0]) / z4) * sbots[u][-2]) * 5 * (
+                                        bots[sbots[u][4]][0] - sbots[u][0]) / abs(
+                                sbots[u][4] - sbots[u][0])
+                            sbots[u][1] += ((abs(sbots[u][1] - bots[sbots[u][4]][1]) / z4) * sbots[u][-2] * 5) * (
+                                        bots[sbots[u][4]][1] - sbots[u][1]) / abs(
+                                sbots[u][5] - sbots[u][1])
+                        l, t = board.move()
+                        if l + size * 100 < sbots[u][0]:
+                            sbots[u][0] = l + size * 100
+                        elif sbots[u][0] < l:
+                            sbots[u][0] = l
+                        if t + size * 100 < sbots[u][1]:
+                            sbots[u][1] = t + size * 100
+                        elif sbots[u][1] < t:
+                            sbots[u][1] = t
+                        if sbots[u][3] > 0:
+                            sbots[u][3] -= 0.005
+                        if bots[sbots[u][4]][0] - bots[sbots[u][4]][-1] < sbots[u][0] < width + r and bots[sbots[u][4]][1] - bots[sbots[u][4]][-1] < sbots[u][1] < bots[sbots[u][4]][1] + bots[sbots[u][4]][-1] and sbots[u][3] < 1:
+                            del_shift.append(u)
+                for i in del_shift:
+                    bots[sbots[i][4]][-1] *= 2
+                    del sbots[i]
+                del_shift = []
                 if r < virus_radius:
                     for i in virus:
                         if i[-2] and i[-3]:
@@ -730,20 +859,25 @@ class Info(QDialog):
 
         sqlite_connection = sqlite3.connect('Rating.db')
         cursor = sqlite_connection.cursor()
-        name_time_food_score = cursor.execute(
+        name_time_food_score_win = cursor.execute(
             "select * from History").fetchall()
         all_time = 0
         all_food = 0
         max_score = 0
-        for i in name_time_food_score:
+        win_score = 0
+        for i in name_time_food_score_win:
             all_time += i[1]
             all_food += i[2]
-            if i[-1] > max_score:
-                max_score = i[-1]
-        self.label_2.setText(str(f'{round(all_time / 3600, 2)} hour'))
-        self.label_3.setText(str(len(name_time_food_score)))
+            if i[3] > max_score:
+                max_score = i[3]
+            if i[-1] == 1:
+                win_score += 1
+
+        self.label_2.setText(str(f'{time.strftime("%H.%M", time.gmtime(all_time))} hour'))
+        self.label_3.setText(str(len(name_time_food_score_win)))
         self.label_4.setText(str(all_food))
         self.label_5.setText(str(max_score))
+        self.label_6.setText(str(f'{round((win_score / len(name_time_food_score_win) * 100))}%'))
 
 
 class Settings(QDialog):
