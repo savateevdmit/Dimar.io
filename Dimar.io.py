@@ -603,6 +603,7 @@ class Start_window(QMainWindow):
                     pass
 
                 if flag:
+                    l, t = board.move()
                     r2 = r1
                     if kf < 700 and kff > -20.5:  # 0
 
@@ -659,6 +660,15 @@ class Start_window(QMainWindow):
                                 del bots[bots.index(i)]
                             except:
                                 pass
+
+                        if (koord[0] / koord[2]) * kf + width > l + size * 100:
+                            koord[0] = koord[2] * (l + size * 100 - width) / kf
+                        elif (koord[0] / koord[2]) * kf + width < l:
+                            koord[0] = koord[2] * (l - width) / kf
+                        if koord[1] / koord[2] * kf + high > t + size * 100:
+                            koord[1] = koord[2] * (t + size * 100 - high) / kf
+                        elif koord[1] / koord[2] * kf + high < t:
+                            koord[1] = koord[2] * (t - high) / kf
                         pygame.draw.circle(screen, COLOR[0][1],
                                            ((koord[0] / koord[2]) * kf + width, koord[1] / koord[2] * kf + high),
                                            r2 + 5)
@@ -767,10 +777,10 @@ class Start_window(QMainWindow):
                                 z1 = sqrt(abs(bots[u][0] - bots[i][0]) ** 2 + abs(bots[u][1] - bots[i][1]) ** 2)
                                 bots[u][0] += ((abs(bots[u][0] - bots[i][0]) / z1) * bots[u][-2]) * (
                                         bots[i][0] - bots[u][0]) / abs(
-                                    bots[i][0] - bots[u][0]) * -1
+                                    bots[i][0] - bots[u][0]) * 1
                                 bots[u][1] += ((abs(bots[u][1] - bots[i][1]) / z1) * bots[u][-2]) * (
                                         bots[i][1] - bots[u][1]) / abs(
-                                    bots[i][1] - bots[u][1]) * -1
+                                    bots[i][1] - bots[u][1]) * 1
                             else:
                                 z1 = sqrt(abs(bots[u][0] - width) ** 2 + abs(bots[u][1] - high) ** 2)
                                 bots[u][0] += ((abs(bots[u][0] - width) / z1) * bots[u][-2]) * (
