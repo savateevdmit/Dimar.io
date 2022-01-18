@@ -7,7 +7,8 @@ from random import *
 
 import pygame
 from PyQt5 import uic
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
 
 pygame.font.init()
@@ -128,7 +129,6 @@ class Start_window(QMainWindow):
         msg.exec_()
 
     def play(self):
-        # self.exit()
         global x, x1, y1, width1, high1, bb, intersection_coordinates, list_of_coordinates, boost, ww, hh, koord, y, z
 
         class Board:
@@ -267,13 +267,22 @@ class Start_window(QMainWindow):
         if __name__ == '__main__':
             self.start = time.monotonic()
             clock = pygame.time.Clock()
+            pygame.mixer.pre_init(44100, -16, 1, 512)
             pygame.init()
+
             size = width, height = 1550, 810
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
             width, high = pygame.display.get_surface().get_size()
             width, high = width // 2, high // 2
             running = True
             board = Board(100, 100)
+            sound_shift = pygame.mixer.Sound("Sounds/Shift.ogg")
+            sound_w = pygame.mixer.Sound("Sounds/Выстрел W.ogg")
+            sound_eat = pygame.mixer.Sound("Sounds/Поедание_планктона.ogg")
+            sound_eat_bot = pygame.mixer.Sound("Sounds/Съел_бота.ogg")
+            sound_virus = pygame.mixer.Sound("Sounds/Вирус.ogg")
+            sound_shift2 = pygame.mixer.Sound("Sounds/Прибавление.ogg")
+            sound_end = pygame.mixer.Sound("Sounds/Конец.ogg")
             v = 12
             r = 30
             r_points = 10
@@ -291,6 +300,10 @@ class Start_window(QMainWindow):
             points = pointss(size, r_points)
             del_points = []
             kf = 0
+            self.food = 0
+            self.max_score = 0
+            kff = 20
+            flag = False
             number_of_bots = 0
             if MODE[0] == 'hide_and_seek':
                 number_of_bots = 3
@@ -301,13 +314,10 @@ class Start_window(QMainWindow):
                 number_of_bots = 20
                 aaa = False
                 bbb = False
-            self.food = 0
-            self.max_score = 0
-            kff = 20
-            flag = False
             r_v = {}
             move = True
             w = []
+            aaa, bbb = True, True
             virus = []
             number_of_viruses = randrange(30, 45)
             image1 = pygame.transform.scale(Virus.load_image("virus.png"), (180, 180))
@@ -336,10 +346,13 @@ class Start_window(QMainWindow):
                             self.end = time.monotonic()
                             uic.loadUi('Ui files/game_over.ui', self)
                             self.show()
-                            time.sleep(0.2)
+                            # sound_end.play()
+                            time.sleep(0.3)
                             self.exit()
                             running = False
+
                         if event.key == pygame.K_w and r >= 50 and self.score >= 15:
+                            sound_w.play()
                             aaaaa = r
                             b = True
                             kff1 = (232 + r) // 11.5
@@ -347,10 +360,10 @@ class Start_window(QMainWindow):
                             r = sqrt((pi * (r ** 2) - pi * (20 ** 2)) / pi)
                             w.append([koord, kf1, kff1, 22, width, high])
                             self.score -= (aaaaa - r)
-                        elif event.key == pygame.K_LSHIFT:
+                        elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
                             if r >= 40 and not flag:
+                                sound_shift.play()
                                 self.score /= 2
-
                                 koord = delenie(x, y, z)
                                 flag = True
                                 r /= 2
@@ -378,6 +391,7 @@ class Start_window(QMainWindow):
                 for i in range(len(virus)):
                     if (width - r < virus[i][0] < width + r and high - r < virus[i][1] < high + r) and r >= virus[i][
                         -1]:
+                        sound_virus.play()
                         del_virus.append(virus[i])
                         virus[i][-3] = False
                         virus.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
@@ -395,12 +409,15 @@ class Start_window(QMainWindow):
                 for i in range(len(points)):
                     if (width - r < points[i][0] < width + r and high - r < points[i][1] < high + r) and r >= points[i][
                         -1]:
+                        sound_eat.set_volume(0.2)
+                        sound_eat.play()
                         del_points.append(points[i])
                         self.score += points[i][-1] / 20
                 for i in range(len(bots)):
                     if (width - r < bots[i][0] < width + r and high - r < bots[i][1] < high + r) and abs(
                             width - bots[i][0]) < 0.5 * r and abs(high - bots[i][1]) < 0.5 * r and r > bots[i][
                         -1] * 1.05:
+                        sound_eat_bot.play()
                         eaten += 1
                         del_bots.append(bots[i])
                         self.score += bots[i][-1] / 20
@@ -459,25 +476,21 @@ class Start_window(QMainWindow):
                     except Exception as e:
                         pass
                 del_virus = []
-                try:
-                    for i in del_bots:
-                        if r >= 150:
-                            size *= (pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2))) * 1.1
-                            r_points *= size / (
-                                        size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
-                            k = size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
-                            points, virus, bots = board.set_view_2(k, size, points, virus, bots)
-                            v *= (pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))
-                            wr *= k
-                            for h in range(len(bots)):
-                                bots[h][-1] *= size / (
-                                        size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
-                        elif r < 150:
-                            # virus_radius *= k
-                            v *= 0.999
-                            r = sqrt(((pi * (r ** 2)) + (pi * (i[-1] ** 2))) / pi)
-                except:
-                    pass
+                for i in del_bots:
+                    if r >= 150:
+                        size *= (pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2))) * 1.1
+                        r_points *= size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
+                        k = size / (size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
+                        points, virus, bots = board.set_view_2(k, size, points, virus, bots)
+                        v *= (pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))
+                        wr *= k
+                        for h in range(len(bots)):
+                            bots[h][-1] *= size / (
+                                    size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
+                    elif r < 150:
+                        # virus_radius *= k
+                        v *= 0.999
+                        r = sqrt(((pi * (r ** 2)) + (pi * (i[-1] ** 2))) / pi)
 
                     try:
                         del bots[bots.index(i)]
@@ -488,7 +501,7 @@ class Start_window(QMainWindow):
                 board.render(screen)
                 try:
                     for i in range(len(points)):
-                        if points[i][-1] == 22:
+                        if points[i][-1] == 22:  # TODO отнимать от points[i][2] 55
                             pygame.draw.circle(screen, COLOR[0][1], (points[i][0], points[i][1]), wr + 1)
                             pygame.draw.circle(screen, COLOR[0][0], (points[i][0], points[i][1]), wr - 4)
                         elif points[i][-1] == 23:
@@ -651,6 +664,8 @@ class Start_window(QMainWindow):
                                            r2 + 5)
                         pygame.draw.circle(screen, COLOR[0][0],
                                            ((koord[0] / koord[2]) * kf + width, koord[1] / koord[2] * kf + high), r2)
+                        if kff == -8.5:
+                            sound_shift2.play()
                         kf += kff
                         kff -= 0.5
                     else:
@@ -737,6 +752,9 @@ class Start_window(QMainWindow):
                                 bots[u][-2] *= 0.997
 
                         try:
+                            if MODE[0] == 'hard':
+                                aaa = False
+                                bbb = False
                             if aaa:
                                 z1 = sqrt(abs(bots[u][0] - bots[i][0]) ** 2 + abs(bots[u][1] - bots[i][1]) ** 2)
                                 bots[u][0] += ((abs(bots[u][0] - bots[i][0]) / z1) * bots[u][-2]) * (
@@ -812,9 +830,6 @@ class Start_window(QMainWindow):
                 screen.blit(text1, (width - (int(len(self.name) * int(r // 19))) // 2, high - int(r // 30)))
                 del_bots = []
                 for u in range(len(bots)):
-                    if MODE[0] == 'hard':
-                        aaa = False
-                        bbb = False
                     if 0 < bots[u][0] + bots[u][-1] and bots[u][0] - bots[u][-1] < width * 2 and 0 < bots[u][1] + \
                             bots[u][-1] and bots[u][1] - bots[u][-1] < high * 2 and bots[u][-1] > r:
                         for i in range(len(points)):
