@@ -6,17 +6,13 @@ from math import *
 from random import *
 
 import pygame
-import pyglet
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
 
-pygame.mixer.pre_init(44100, -16, 1, 512)
-pygame.init()
 pygame.font.init()
 
-pygame.mixer.music.load("sounds/Фон1.mp3")
 FPS = 30
 COLOR = []
 COLORS = [((255, 80, 36), (240, 48, 0)), ((255, 136, 0), (255, 126, 0)), ((95, 230, 32), (56, 140, 17))]
@@ -29,8 +25,6 @@ class Start_window(QMainWindow):
         COLOR.append(((250, 0, 0), (200, 0, 0)))
         uic.loadUi('Ui files/start.ui', self)  # Загружаем дизайн
         self.showFullScreen()
-
-        pygame.mixer.music.play(-1)
         self.toolButton.clicked.connect(self.click)
         self.toolButton_2.clicked.connect(self.settings)
         self.toolButton_3.clicked.connect(self.info)
@@ -114,12 +108,8 @@ class Start_window(QMainWindow):
         self.hide()
 
     def menu(self):
-        pygame.mixer.pre_init(44100, -16, 1, 512)
-        pygame.init()
         uic.loadUi('Ui files/start.ui', self)  # Загружаем дизайн
         self.showFullScreen()
-        pygame.mixer.music.load("sounds/Фон1.mp3")
-        pygame.mixer.music.play(-1)
         self.toolButton.clicked.connect(self.click)
         self.toolButton_2.clicked.connect(self.settings)
         self.toolButton_3.clicked.connect(self.info)
@@ -133,15 +123,12 @@ class Start_window(QMainWindow):
         msg.setIcon(QMessageBox.Critical)
         msg.setText(text)
         msg.setWindowTitle('Dimar.io')
-        icon = QIcon()
-        icon.addFile(u"Application Icons/icon.png", QSize(), QIcon.Normal, QIcon.Off)
-        msg.setWindowIcon(icon)
+        # icon = QIcon()
+        # icon.addFile(u"Application Icons/log.png", QSize(), QIcon.Normal, QIcon.Off)
+        # msg.setWindowIcon(icon)
         msg.exec_()
 
     def play(self):
-        pygame.mixer.pre_init(44100, -16, 1, 512)
-        pygame.init()
-        pygame.mixer.music.stop()
         global x, x1, y1, width1, high1, bb, intersection_coordinates, list_of_coordinates, boost, ww, hh, koord, y, z
 
         class Board:
@@ -280,6 +267,8 @@ class Start_window(QMainWindow):
         if __name__ == '__main__':
             self.start = time.monotonic()
             clock = pygame.time.Clock()
+            pygame.mixer.pre_init(44100, -16, 1, 512)
+            pygame.init()
 
             size = width, height = 1550, 810
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -293,8 +282,7 @@ class Start_window(QMainWindow):
             sound_eat_bot = pygame.mixer.Sound("Sounds/Съел_бота.ogg")
             sound_virus = pygame.mixer.Sound("Sounds/Вирус.ogg")
             sound_shift2 = pygame.mixer.Sound("Sounds/Прибавление.ogg")
-            sound_win = pyglet.media.load('Sounds/победа.mp3', streaming=False)
-            sound_end = pyglet.media.load('Sounds/Конец.mp3')
+            sound_end = pygame.mixer.Sound("Sounds/Конец.ogg")
             v = 12
             r = 30
             r_points = 10
@@ -315,10 +303,10 @@ class Start_window(QMainWindow):
             self.food = 0
             self.max_score = 0
             kff = 20
-            shift = False
+            flag = False
             number_of_bots = 0
             if MODE[0] == 'hide_and_seek':
-                number_of_bots = 2
+                number_of_bots = 3
             else:
                 number_of_bots = 30
 
@@ -355,7 +343,6 @@ class Start_window(QMainWindow):
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
-                            sound_end.play()
                             self.end = time.monotonic()
                             uic.loadUi('Ui files/game_over.ui', self)
                             self.show()
@@ -374,11 +361,11 @@ class Start_window(QMainWindow):
                             w.append([koord, kf1, kff1, 22, width, high])
                             self.score -= (aaaaa - r)
                         elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
-                            if r >= 40 and not shift:
+                            if r >= 40 and not flag:
                                 sound_shift.play()
                                 self.score /= 2
                                 koord = delenie(x, y, z)
-                                shift = True
+                                flag = True
                                 r /= 2
 
                             # v = r_v[int(r)]
@@ -439,7 +426,6 @@ class Start_window(QMainWindow):
                             bots[i][1] - bots[i][-1] < high < bots[i][1] + bots[i][-1] and abs(
                         bots[i][0] - width) < 0.5 * bots[i][-1] and abs(bots[i][1] - high) < 0.5 * bots[i][-1]:
                         self.end = time.monotonic()
-                        sound_end.play()
                         uic.loadUi('Ui files/game_over.ui', self)
                         self.show()
                         time.sleep(0.2)
@@ -616,7 +602,7 @@ class Start_window(QMainWindow):
                 except ZeroDivisionError:
                     pass
 
-                if shift:
+                if flag:
                     l, t = board.move()
                     r2 = r1
                     if kf < 700 and kff > -20.5:  # 0
@@ -626,8 +612,6 @@ class Start_window(QMainWindow):
                                     koord[0] / koord[2]) * kf + width + r2 and koord[1] / koord[2] * kf + high - r2 < \
                                     points[i][1] < koord[1] / koord[2] * kf + high + r2:
                                 del_points.append(points[i])
-                                sound_eat.set_volume(0.2)
-                                sound_eat.play()
                                 self.score += points[i][-1] / 20
                         for i in del_points:
 
@@ -636,7 +620,6 @@ class Start_window(QMainWindow):
                                 del points[points.index(i)]
                             except:
                                 pass
-                        self.food += len(del_points)
 
                         for i in range(len(virus)):
                             if (koord[0] / koord[2]) * kf + width - r2 < virus[i][0] < (
@@ -696,7 +679,7 @@ class Start_window(QMainWindow):
                         kf += kff
                         kff -= 0.5
                     else:
-                        shift = False
+                        flag = False
                         self.score *= 2
                         kf = 0
                         kff = 20
@@ -707,7 +690,8 @@ class Start_window(QMainWindow):
                     for i in virus:
                         if i[-3]:
                             screen.blit(image1, (i[0], i[1]))
-
+                        else:
+                            del i
                 if viruss:
                     for i in range(number_of_viruses):
                         virus.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
@@ -757,15 +741,15 @@ class Start_window(QMainWindow):
                             bbb = False
                             if 0 < bots[u][0] + bots[i][-1] and bots[i][0] - bots[i][-1] < width * 2 and 0 < bots[i][
                                 1] + \
-                                    bots[i][-1] and bots[i][1] - bots[i][-1] < high * 2 and i != u and bots[u][-1] < \
-                                    bots[i][-1]:
-                                bbb = True
-                                break
-                            elif 0 < bots[u][0] + bots[i][-1] and bots[i][0] - bots[i][-1] < width * 2 and 0 < bots[i][
-                                1] + \
                                     bots[i][-1] and bots[i][1] - bots[i][-1] < high * 2 and i != u and bots[u][-1] > \
                                     bots[i][-1]:
                                 aaa = True
+                                break
+                            elif 0 < bots[u][0] + bots[i][-1] and bots[i][0] - bots[i][-1] < width * 2 and 0 < bots[i][
+                                1] + \
+                                    bots[i][-1] and bots[i][1] - bots[i][-1] < high * 2 and i != u and bots[u][-1] < \
+                                    bots[i][-1]:
+                                bbb = True
                                 break
                         for g in range(len(bots)):
                             if (bots[u][0] - bots[u][-1] < bots[g][0] < bots[u][0] + bots[u][-1] and bots[u][1] -
@@ -778,6 +762,9 @@ class Start_window(QMainWindow):
                                 bots[u][-2] *= 0.997
 
                         try:
+                            if MODE[0] == 'hard':
+                                aaa = False
+                                bbb = False
                             if aaa:
                                 z1 = sqrt(abs(bots[u][0] - bots[i][0]) ** 2 + abs(bots[u][1] - bots[i][1]) ** 2)
                                 bots[u][0] += ((abs(bots[u][0] - bots[i][0]) / z1) * bots[u][-2]) * (
@@ -790,10 +777,10 @@ class Start_window(QMainWindow):
                                 z1 = sqrt(abs(bots[u][0] - bots[i][0]) ** 2 + abs(bots[u][1] - bots[i][1]) ** 2)
                                 bots[u][0] += ((abs(bots[u][0] - bots[i][0]) / z1) * bots[u][-2]) * (
                                         bots[i][0] - bots[u][0]) / abs(
-                                    bots[i][0] - bots[u][0]) * -1
+                                    bots[i][0] - bots[u][0]) * 1
                                 bots[u][1] += ((abs(bots[u][1] - bots[i][1]) / z1) * bots[u][-2]) * (
                                         bots[i][1] - bots[u][1]) / abs(
-                                    bots[i][1] - bots[u][1]) * -1
+                                    bots[i][1] - bots[u][1]) * 1
                             else:
                                 z1 = sqrt(abs(bots[u][0] - width) ** 2 + abs(bots[u][1] - high) ** 2)
                                 bots[u][0] += ((abs(bots[u][0] - width) / z1) * bots[u][-2]) * (
@@ -826,7 +813,7 @@ class Start_window(QMainWindow):
                             bots[u][-1] /= 2
                             flagb = True
                             bots[u][-3] = False
-                    elif r >= bots[u][-1]:
+                    elif r <= bots[u][-1]:
                         bots[u][-3] = True
 
                 if self.score > self.max_score:
@@ -834,7 +821,6 @@ class Start_window(QMainWindow):
 
                 if len(bots) == 0:
                     self.end = time.monotonic()
-                    sound_win.play()
                     uic.loadUi('Ui files/win.ui', self)
                     self.show()
                     self.win = 1
@@ -854,8 +840,6 @@ class Start_window(QMainWindow):
                 screen.blit(text1, (width - (int(len(self.name) * int(r // 19))) // 2, high - int(r // 30)))
                 del_bots = []
                 for u in range(len(bots)):
-                    aaa = False
-                    bbb = False
                     if 0 < bots[u][0] + bots[u][-1] and bots[u][0] - bots[u][-1] < width * 2 and 0 < bots[u][1] + \
                             bots[u][-1] and bots[u][1] - bots[u][-1] < high * 2 and bots[u][-1] > r:
                         for i in range(len(points)):
@@ -895,15 +879,15 @@ class Start_window(QMainWindow):
                         for i in range(len(bots)):
                             if 0 < bots[u][0] + bots[i][-1] and bots[i][0] - bots[i][-1] < width * 2 and 0 < bots[i][
                                 1] + \
-                                    bots[i][-1] and bots[i][1] - bots[i][-1] < high * 2 and i != u and bots[u][-1] < \
-                                    bots[i][-1]:
-                                bbb = True
-                                break
-                            elif 0 < bots[u][0] + bots[i][-1] and bots[i][0] - bots[i][-1] < width * 2 and 0 < bots[i][
-                                1] + \
                                     bots[i][-1] and bots[i][1] - bots[i][-1] < high * 2 and i != u and bots[u][-1] > \
                                     bots[i][-1] and r < bots[i][-1]:
                                 aaa = True
+                                break
+                            elif 0 < bots[u][0] + bots[i][-1] and bots[i][0] - bots[i][-1] < width * 2 and 0 < bots[i][
+                                1] + \
+                                    bots[i][-1] and bots[i][1] - bots[i][-1] < high * 2 and i != u and bots[u][-1] < \
+                                    bots[i][-1]:
+                                bbb = True
                                 break
 
                         for g in range(len(bots)):
@@ -926,7 +910,8 @@ class Start_window(QMainWindow):
 
                         try:
                             if MODE[0] == 'hard':
-                                aaa = bbb = False
+                                aaa = False
+                                bbb = False
                             if aaa:
                                 z1 = sqrt(abs(bots[u][0] - bots[i][0]) ** 2 + abs(bots[u][1] - bots[i][1]) ** 2)
                                 bots[u][0] += ((abs(bots[u][0] - bots[i][0]) / z1) * bots[u][-2]) * (
@@ -977,16 +962,12 @@ class Start_window(QMainWindow):
                                 bots[u][-3] = False
                     elif r < bots[u][-1]:
                         bots[u][-3] = True
-                try:
-                    for g in del_bots:
-                        del bots[g]
-                except:
-                    pass
+                for g in del_bots:
+                    del bots[g]
                 del_bots = []
 
                 try:
                     for u in range(len(sbots)):
-                        www = False
                         for i in range(len(points)):
                             if (sbots[u][0] - sbots[u][-1] < points[i][0] < sbots[u][0] + sbots[u][-1] and sbots[u][
                                 1] -
@@ -1067,13 +1048,11 @@ class Start_window(QMainWindow):
                             v *= 0.997
                             self.score += sbots[u][-1] / 20
                             del_shift.append(u)
-                            www = True
                         elif r * 1.02 < sbots[u][-1] and sbots[u][0] - sbots[u][-1] < width < sbots[u][0] + sbots[u][
                             -1] and sbots[u][1] - sbots[u][-1] < high < sbots[u][1] + sbots[u][-1] and abs(
                             sbots[u][0] - width) < 0.5 * sbots[u][-1] and abs(sbots[u][1] - high) < 0.5 * sbots[u][
                             -1]:
                             self.end = time.monotonic()
-                            sound_end.play()
                             uic.loadUi('Ui files/game_over.ui', self)
                             self.show()
                             time.sleep(0.2)
@@ -1086,8 +1065,7 @@ class Start_window(QMainWindow):
                                 sbots[u][-1] = sqrt(((pi * (sbots[u][-1] ** 2)) + (pi * (bots[g][-1] ** 2))) / pi)
                                 del_bots.append(g)
                     for i in del_shift:
-                        if not www:
-                            bots[sbots[i][4]][-1] += sbots[i][-1]
+                        bots[sbots[i][4]][-1] += sbots[i][-1]
                         del sbots[i]
                     for i in del_bots:
                         del bots[i]
@@ -1101,43 +1079,54 @@ class Start_window(QMainWindow):
                     for i in virus:
                         if i[-2] and i[-3]:
                             screen.blit(image1, (i[0], i[1]))
+                        elif not i[-3]:
+                            del i
 
                 if MODE[0] == 'normal':
                     counter += 1
-                    if counter < 180:
+                    if counter < 150:
                         text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 40).render('Standart mod:', True,
                                                                                          (101, 101, 101))
-                        text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 30).render(
-                            'Останьтесь последним выжившим!',
-                            True,
-                            (101, 101, 101))
+                        text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 30).render('Stay the last survivor',
+                                                                                          True,
+                                                                                          (101, 101, 101))
                         screen.blit(text, (860, 170))
-                        screen.blit(text1, (745, 222))
+                        screen.blit(text1, (845, 222))
 
                 elif MODE[0] == 'hard':
                     counter += 1
-                    if counter < 180:
-                        text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 40).render('Survival mod:', True,
+                    if counter < 150:
+                        text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 40).render('Hard mod:', True,
                                                                                          (101, 101, 101))
-                        text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 30).render(
-                            'Боты охотятся только на вас, постарайтесь выжить!',
-                            True,
-                            (101, 101, 101))
+                        text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 30).render('Complicated standard mode',
+                                                                                          True,
+                                                                                          (101, 101, 101))
                         screen.blit(text, (870, 170))
-                        screen.blit(text1, (640, 222))
+                        screen.blit(text1, (770, 222))
 
                 elif MODE[0] == 'hide_and_seek':
                     counter += 1
-                    if counter < 180:
-                        text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 40).render('Hide and seek mood:',
-                                                                                         True,
+                    if counter < 150:
+                        text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 40).render('Hide and seek mood:', True,
                                                                                          (101, 101, 101))
                         text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 30).render(
-                            'Найдите 2 спрятавшихся игроков на карте',
+                            'Find 3 hidden players on the map',
                             True,
                             (101, 101, 101))
                         screen.blit(text, (815, 170))
-                        screen.blit(text1, (700, 222))
+                        screen.blit(text1, (760, 222))
+
+                elif MODE[0] == 'hunt':
+                    counter += 1
+                    if counter < 150:
+                        text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 40).render('Hunt mode:', True,
+                                                                                         (101, 101, 101))
+                        text1 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 30).render(
+                            'One player is randomly selected on the map, which is being hunted',
+                            True,
+                            (101, 101, 101))
+                        screen.blit(text, (870, 170))
+                        screen.blit(text1, (540, 222))
 
                 text3 = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 30).render(f'Alive - {len(bots) + 1}', True,
                                                                                   (101, 101, 101))
@@ -1155,7 +1144,6 @@ class Info(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi('Ui files/info.ui', self)
-        self.toolButton_3.clicked.connect(self.rules)
 
         sqlite_connection = sqlite3.connect('Rating.db')
         cursor = sqlite_connection.cursor()
@@ -1179,10 +1167,6 @@ class Info(QDialog):
         self.label_5.setText(str(max_score))
         self.label_6.setText(str(f'{round((win_score / len(name_time_food_score_win) * 100))}%'))
 
-    def rules(self):
-        self.rul = Rules()
-        self.rul.show()
-
 
 class Settings(QDialog):
     def __init__(self):
@@ -1199,6 +1183,7 @@ class Settings(QDialog):
         self.radioButton_4.toggled.connect(self.norm)
         self.radioButton_5.toggled.connect(self.hard)
         self.radioButton_6.toggled.connect(self.hide_and_seek)
+        self.radioButton_7.toggled.connect(self.hunt)
 
         self.toolButton.clicked.connect(self.save)
 
@@ -1213,6 +1198,10 @@ class Settings(QDialog):
     def hide_and_seek(self):
         MODE.clear()
         MODE.append('hide_and_seek')
+
+    def hunt(self):
+        MODE.clear()
+        MODE.append('hunt')
 
     def red(self):
         red = ((250, 0, 0), (200, 0, 0))
@@ -1231,12 +1220,6 @@ class Settings(QDialog):
 
     def save(self):
         self.hide()
-
-
-class Rules(QDialog):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi('Ui files/rules.ui', self)
 
 
 def except_hook(cls, exception, traceback):
