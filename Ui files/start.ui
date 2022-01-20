@@ -7,11 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>1920</width>
-    <height>1100</height>
+    <height>1098</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dimar.io</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../Application Icons/icon.ico</normaloff>../Application Icons/icon.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="label">

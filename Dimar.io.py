@@ -141,7 +141,7 @@ class Start_window(QMainWindow):
         msg.exec_()
 
     def play(self):
-        uic.loadUi('Ui files/game_over.ui', self) # потом убрать
+        uic.loadUi('Ui files/game_over.ui', self)
         pygame.mixer.pre_init(44100, -16, 1, 512)
         pygame.init()
         pygame.mixer.music.stop()
@@ -659,6 +659,7 @@ class Start_window(QMainWindow):
                                     virus[i][1] < koord[1] / koord[2] * kf + high + r2:
                                 del_virus.append(virus[i])
                                 virus[i][-3] = False
+                                sound_virus.play()
                                 virus.append([randrange(int(board.move()[0]), int(size * 100 + board.move()[0])),
                                               randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
                                               (0, 0, 0),
@@ -687,6 +688,7 @@ class Start_window(QMainWindow):
                                 del_bots.append(bots[i])
                                 self.score += bots[i][-1] / 20
                         for i in del_bots:
+                            eaten += 1
                             r2 += (sqrt(((pi * (r2 ** 2)) + (pi * (i[-1] ** 2))) / pi) - r2) / 4
                             try:
                                 del bots[bots.index(i)]
