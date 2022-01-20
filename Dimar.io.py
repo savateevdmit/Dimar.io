@@ -19,7 +19,10 @@ pygame.font.init()
 pygame.mixer.music.load("sounds/Фон1.mp3")
 FPS = 30
 COLOR = []
-COLORS = [((255, 80, 36), (240, 48, 0)), ((255, 136, 0), (255, 126, 0)), ((95, 230, 32), (56, 140, 17))]
+COLORS = [((255, 80, 36), (240, 48, 0)), ((255, 136, 0), (224, 90, 0)), ((95, 230, 32), (74, 186, 22)),
+          ((0, 255, 255), (29, 172, 214)), ((153, 102, 204), (120, 81, 169)), ((153, 50, 204), (114, 0, 163)),
+          ((254, 40, 162), (224, 0, 123)), ((176, 63, 53), (128, 32, 32)), ((255, 186, 0), (255, 153, 0)),
+          ((191, 255, 0), (150, 250, 0)), ((255, 163, 67), (247, 121, 10)), ((243, 71, 35), (248, 0, 0))]
 MODE = ['normal']
 
 
@@ -411,7 +414,7 @@ class Start_window(QMainWindow):
                                       randrange(int(board.move()[1]), int(size * 100 + board.move()[1])), (0, 0, 0),
                                       True, True, 70])
                         r *= 0.35
-                        v /= 0.95
+                        v /= 0.92
                         self.score *= 0.35
                         for i in range(randrange(20, 30)):
                             w.append(
@@ -505,6 +508,7 @@ class Start_window(QMainWindow):
                         # virus_radius *= k
                         v *= 0.999
                         r = sqrt(((pi * (r ** 2)) + (pi * (i[-1] ** 2))) / pi)
+
 
                     try:
                         del bots[bots.index(i)]
@@ -737,7 +741,6 @@ class Start_window(QMainWindow):
                                               randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
                                               (0, 0, 0),
                                               True, True, 70])
-                                koord = delenie(x, y, z)
                                 bots[u][-1] *= 0.35
                                 bots[u][-2] /= 0.95
                                 for i in range(randrange(20, 30)):
@@ -877,7 +880,6 @@ class Start_window(QMainWindow):
                                               randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
                                               (0, 0, 0),
                                               True, True, 70])
-                                koord = delenie(x, y, z)
                                 bots[u][-1] *= 0.35
                                 bots[u][-2] /= 0.95
                                 for i in range(randrange(20, 30)):
@@ -914,7 +916,7 @@ class Start_window(QMainWindow):
                                 -1] * 1.05 and u != g:
                                 del_bots.append(g)
                                 bots[u][-1] = sqrt(((pi * (bots[u][-1] ** 2)) + (pi * (bots[g][-1] ** 2))) / pi)
-                                bots[u][-2] *= 0.997
+                                bots[u][-2] *= 0.995
 
                             # elif bots[u][-1] * 1.05 < bots[g][-1] and bots[g][0] - bots[g][-1] < bots[u][0] < bots[g][0] + bots[g][
                             #     -1] and \
@@ -1008,14 +1010,13 @@ class Start_window(QMainWindow):
                                               randrange(int(board.move()[1]), int(size * 100 + board.move()[1])),
                                               (0, 0, 0),
                                               True, True, 70])
-                                koord = delenie(x, y, z)
                                 sbots[u][-1] *= 0.35
                                 sbots[u][-2] /= 0.95
                                 for i in range(randrange(20, 30)):
                                     w_bots.append(
                                         [delenie(randrange(-20, 20), randrange(-20, 20),
                                                  sqrt(randrange(-20, 20) ** 2 + randrange(-20, 20) ** 2)), 0,
-                                         (232 + r) // 15.47, sbots[u][0], sbots[u][1], sbots[u][2]])
+                                         (232 + r) // 15.47, 23, sbots[u][0], sbots[u][1], sbots[u][2]])
                                 c = True
                         for i in del_virusb:
                             try:
@@ -1029,12 +1030,22 @@ class Start_window(QMainWindow):
 
                         if sbots[u][3] > 1:
                             z4 = sqrt(abs(sbots[u][0] - width) ** 2 + abs(sbots[u][1] - high) ** 2)
-                            sbots[u][0] += ((abs(sbots[u][0] - width) / z4) * sbots[u][-2] * sbots[u][3]) * (
+                            if sbots[u][-1] > r:
+                                sbots[u][0] += ((abs(sbots[u][0] - width) / z4) * sbots[u][-2] * sbots[u][3]) * (
                                     width - sbots[u][0]) / abs(
                                 width - sbots[u][0])
-                            sbots[u][1] += ((abs(sbots[u][1] - high) / z4) * sbots[u][-2] * sbots[u][3]) * (
+                                sbots[u][1] += ((abs(sbots[u][1] - high) / z4) * sbots[u][-2] * sbots[u][3]) * (
                                     high - sbots[u][1]) / abs(
                                 high - sbots[u][1])
+                            else:
+                                z4 = sqrt(abs(sbots[u][0] - bots[sbots[u][4]][0]) ** 2 + abs(
+                                    sbots[u][1] - bots[sbots[u][4]][1]) ** 2)
+                                sbots[u][0] += ((abs(sbots[u][0] - bots[sbots[u][4]][0]) / z4) * sbots[u][-2]) * 3.7 * (
+                                        bots[sbots[u][4]][0] - sbots[u][0]) / abs(
+                                    sbots[u][4] - sbots[u][0])
+                                sbots[u][1] += ((abs(sbots[u][1] - bots[sbots[u][4]][1]) / z4) * sbots[u][-2] * 3.7) * (
+                                        bots[sbots[u][4]][1] - sbots[u][1]) / abs(
+                                    sbots[u][5] - sbots[u][1])
                         else:
                             z4 = sqrt(abs(sbots[u][0] - bots[sbots[u][4]][0]) ** 2 + abs(
                                 sbots[u][1] - bots[sbots[u][4]][1]) ** 2)
