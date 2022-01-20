@@ -15,10 +15,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 pygame.font.init()
-
 pygame.mixer.music.load("sounds/Фон1.mp3")
 FPS = 30
-COLOR = []
+COLOR = [((250, 0, 0), (200, 0, 0))]
 COLORS = [((255, 80, 36), (240, 48, 0)), ((255, 136, 0), (224, 90, 0)), ((95, 230, 32), (74, 186, 22)),
           ((0, 255, 255), (29, 172, 214)), ((153, 102, 204), (120, 81, 169)), ((153, 50, 204), (114, 0, 163)),
           ((254, 40, 162), (224, 0, 123)), ((176, 63, 53), (128, 32, 32)), ((255, 186, 0), (255, 153, 0)),
@@ -142,6 +141,7 @@ class Start_window(QMainWindow):
         msg.exec_()
 
     def play(self):
+        uic.loadUi('Ui files/game_over.ui', self) # потом убрать
         pygame.mixer.pre_init(44100, -16, 1, 512)
         pygame.init()
         pygame.mixer.music.stop()
@@ -296,8 +296,14 @@ class Start_window(QMainWindow):
             sound_eat_bot = pygame.mixer.Sound("Sounds/Съел_бота.ogg")
             sound_virus = pygame.mixer.Sound("Sounds/Вирус.ogg")
             sound_shift2 = pygame.mixer.Sound("Sounds/Прибавление.ogg")
+            sound_time = pygame.mixer.Sound("Sounds/Таймер.ogg")
+            sound_baraban = pygame.mixer.Sound("Sounds/барабан.ogg")
             sound_win = pyglet.media.load('Sounds/победа.mp3', streaming=False)
             sound_end = pyglet.media.load('Sounds/Конец.mp3')
+            animation_set = [pygame.image.load('Application Icons/3.png'),
+                             pygame.image.load('Application Icons/2.png'),
+                             pygame.image.load('Application Icons/1.png')]
+            animation_counter = 0
             v = 12
             r = 30
             r_points = 10
@@ -308,6 +314,9 @@ class Start_window(QMainWindow):
             bb = False
             viruss = True
             eat_virus = False
+            animation = False
+            if MODE[0] == 'hide_and_seek':
+                animation = True
             plr = []
             self.win = 0
             size = 100
@@ -376,7 +385,7 @@ class Start_window(QMainWindow):
                             r = sqrt((pi * (r ** 2) - pi * (20 ** 2)) / pi)
                             w.append([koord, kf1, kff1, 22, width, high])
                             self.score -= (aaaaa - r)
-                        elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
+                        elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT or event.key == pygame.K_SPACE:
                             if r >= 40 and not shift:
                                 sound_shift.play()
                                 self.score /= 2
@@ -399,8 +408,9 @@ class Start_window(QMainWindow):
                                    (randrange(0, 255), randrange(0, 255), randrange(0, 255)), r_points])
                 if (x > 50 or x < -50) or (y > 50 or y < -50):
                     move = False
-                    points, virus, bots, w, w_bots, sbots = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size,
-                                                                           points, virus, bots, w, w_bots, sbots)
+                    if not animation:
+                        points, virus, bots, w, w_bots, sbots = board.set_view(0 - (x / z) * v, 0 - (y / z) * v, size,
+                                                                               points, virus, bots, w, w_bots, sbots)
                     width1 -= (x / z) * v
                     high1 -= (y / z) * v
 
@@ -414,7 +424,7 @@ class Start_window(QMainWindow):
                                       randrange(int(board.move()[1]), int(size * 100 + board.move()[1])), (0, 0, 0),
                                       True, True, 70])
                         r *= 0.35
-                        v /= 0.92
+                        v /= 0.93
                         self.score *= 0.35
                         for i in range(randrange(20, 30)):
                             w.append(
@@ -501,6 +511,7 @@ class Start_window(QMainWindow):
                         points, virus, bots = board.set_view_2(k, size, points, virus, bots)
                         v *= (pi * (r ** 2)) / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))
                         wr *= k
+                        s_im *= k
                         for h in range(len(bots)):
                             bots[h][-1] *= size / (
                                     size / ((pi * (r ** 2)) * 1.001 / ((pi * (r ** 2)) + (pi * (i[-1] ** 2)))))
@@ -992,7 +1003,8 @@ class Start_window(QMainWindow):
                         for i in range(len(points)):
                             if (sbots[u][0] - sbots[u][-1] < points[i][0] < sbots[u][0] + sbots[u][-1] and sbots[u][
                                 1] -
-                                sbots[u][-1] < points[i][1] < sbots[u][1] + r) and sbots[u][-1] >= \
+                                sbots[u][-1] < points[i][1] < sbots[u][1] + r) \
+                                    and sbots[u][-1] >= \
                                     points[i][-1]:
                                 del_pointsb.append(points[i])
                         for i in del_pointsb:
@@ -1139,6 +1151,19 @@ class Start_window(QMainWindow):
 
                 elif MODE[0] == 'hide_and_seek':
                     counter += 1
+                    if animation:
+                        try:
+                            sound_time.play()
+                            screen.blit(animation_set[animation_counter], (910, 300))
+                            animation_counter += 1
+                            if animation_counter == 4:
+                                animation = False
+                        except:
+                            sound_baraban.set_volume(0.6)
+                            sound_baraban.play()
+                            animation = False
+                            pass
+
                     if counter < 180:
                         text = pygame.font.Font('Bubbleboddy-Neue-trial.ttf', 40).render('Hide and seek mood:',
                                                                                          True,
@@ -1147,6 +1172,8 @@ class Start_window(QMainWindow):
                             'Найдите 2 спрятавшихся игроков на карте',
                             True,
                             (101, 101, 101))
+
+
                         screen.blit(text, (815, 170))
                         screen.blit(text1, (700, 222))
 
@@ -1158,7 +1185,10 @@ class Start_window(QMainWindow):
                 screen.blit(text3, (1770, 80))
 
                 pygame.display.flip()
-                clock.tick(FPS)
+                if animation:
+                    clock.tick(1)
+                else:
+                    clock.tick(FPS)
             pygame.quit()
 
 
@@ -1183,12 +1213,14 @@ class Info(QDialog):
                 max_score = i[3]
             if i[-1] == 1:
                 win_score += 1
-
         self.label_2.setText(str(f'{time.strftime("%H.%M", time.gmtime(all_time))} hour'))
         self.label_3.setText(str(len(name_time_food_score_win)))
         self.label_4.setText(str(all_food))
         self.label_5.setText(str(max_score))
-        self.label_6.setText(str(f'{round((win_score / len(name_time_food_score_win) * 100))}%'))
+        try:
+            self.label_6.setText(str(f'{round((win_score / len(name_time_food_score_win) * 100))}%'))
+        except:
+            self.label_6.setText(str(f'0%'))
 
     def rules(self):
         self.rul = Rules()
@@ -1200,9 +1232,20 @@ class Settings(QDialog):
         super().__init__()
         uic.loadUi('Ui files/settings.ui', self)
 
-        self.radioButton.setChecked(True)
-        self.radioButton_4.setChecked(True)
+        if MODE[0] == 'hide_and_seek':
+            self.radioButton_6.setChecked(True)
+        elif MODE[0] == 'hard':
+            self.radioButton_5.setChecked(True)
+        elif MODE[0] == 'normal':
+            self.radioButton_4.setChecked(True)
+        elif COLOR[0] == ((250, 0, 0), (200, 0, 0)):
+            self.radioButton.setChecked(True)
+        elif COLOR[0] == ((0, 250, 0), (0, 200, 0)):
+            self.radioButton.setChecked(True)
+        elif COLOR[0] == ((0, 0, 250), (0, 0, 200)):
+            self.radioButton.setChecked(True)
 
+        self.radioButton.setChecked(True)
         self.radioButton.toggled.connect(self.red)
         self.radioButton_2.toggled.connect(self.green)
         self.radioButton_3.toggled.connect(self.blue)
@@ -1250,13 +1293,8 @@ class Rules(QDialog):
         uic.loadUi('Ui files/rules.ui', self)
 
 
-def except_hook(cls, exception, traceback):
-    sys.__excepthook__(cls, exception, traceback)
-
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = Start_window()
     form.show()
-    sys.excepthook = except_hook
     sys.exit(app.exec())
